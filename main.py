@@ -28,8 +28,43 @@ class Character(pygame.sprite.Sprite):
         self.weapon_points = 50
     
     def move(self, direction):
-        pass
-    
+        index = [item for sublist in field.tiles for item in sublist].index(hero)
+        row, col = index//3, index % 3
+        if direction == "LEFT":
+            try:
+                assert col - 1 >= 0
+                field.tiles[row][col - 1] = hero
+                field.tiles[row][col] = None
+                hero.rect.x -= 125
+            except IndexError:
+                pass
+            except AssertionError:
+                pass
+        if direction == "RIGHT":
+            try:
+                field.tiles[row][col + 1] = hero
+                field.tiles[row][col] = None
+                hero.rect.x += 125
+            except IndexError:
+                pass
+        if direction == "UP":
+            try:
+                assert row - 1 >= 0
+                field.tiles[row - 1][col] = hero
+                field.tiles[row][col] = None
+                hero.rect.y -= 125
+            except IndexError:
+                pass
+            except AssertionError:
+                pass
+        if direction == "DOWN":
+            try:    
+                field.tiles[row + 1][col] = hero
+                field.tiles[row][col] = None
+                hero.rect.y += 125
+            except IndexError:
+                pass
+
 
 # класс поля.
 class Field(pygame.sprite.Sprite):
@@ -69,12 +104,13 @@ size = width, height = 800, 650
 screen = pygame.display.set_mode(size)
 
 # создание поля и его спрайта. 
-field = pygame.sprite.Group()
-Field(field)
+field_sprite = pygame.sprite.Group()
+field = Field(field_sprite)
 
 # создание героя.
-hero = pygame.sprite.Group()
-Character(hero)
+hero_sprite = pygame.sprite.Group()
+hero = Character(hero_sprite)
+field.tiles[0][0] = hero
 
 # фиксирование кадров в секунду на отметке в 60 или 30.
 clock = pygame.time.Clock()
@@ -86,12 +122,21 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                hero.move("LEFT")
+            if event.key == pygame.K_RIGHT:
+                hero.move("RIGHT")
+            if event.key == pygame.K_DOWN:
+                hero.move("DOWN")
+            if event.key == pygame.K_UP:
+                hero.move("UP")
 
     screen.fill((255, 255, 255))
 
     # прорисовка спрайтов.
-    field.draw(screen)
-    hero.draw(screen)
+    field_sprite.draw(screen)
+    hero_sprite.draw(screen)
 
     pygame.display.flip()
     clock.tick(fps)
