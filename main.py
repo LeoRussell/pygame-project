@@ -29,7 +29,7 @@ class Character(pygame.sprite.Sprite):
     
     def move(self, direction):
         index = [item for sublist in field.tiles for item in sublist].index(hero)
-        row, col = index//3, index % 3
+        row, col = index // 3, index % 3
         if direction == "LEFT":
             try:
                 assert col - 1 >= 0
@@ -83,6 +83,30 @@ class Field(pygame.sprite.Sprite):
                     [None, None, None],
                     [None, None, None]
                     ]
+
+
+# материнский класс пикапов.
+class Pickup(pygame.sprite.Sprite):
+    def __init__(self, image, group):
+        super().__init__(group)
+        pickup_image = pygame.image.load(f"data/{image}")
+        pickup_image = pygame.transform.scale(pickup_image, (140, 170))
+        self.image = self.pickup_image
+        self.rect = self.image.get_rect()
+        self.rect.x = None
+        self.rect.y = None
+        
+        # "вместимость" пикапа.
+        self.value = 0
+    
+
+    # функция получения пикапа
+    def pickup_get(self):
+        # self.hero_pickup_value += self.value
+        index = [item for sublist in field.tiles for item in sublist].index(hero)
+        row, col = index // 3, index % 3
+        field.tiles[row][col] == None
+        self.kill()
 
 
 
