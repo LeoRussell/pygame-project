@@ -1,13 +1,13 @@
 import pygame
+import random
 
 
-# -----------------------------------
-#   ___ _      _   ___ ___ ___ ___  
-#  / __| |    /_\ / __/ __| __/ __| 
-# | (__| |__ / _ \\__ \__ \ _|\__ \ 
-#  \___|____/_/ \_\___/___/___|___/ 
-#
-# -----------------------------------
+#     ██╗███████╗████████╗██████╗ ██╗   ██╗ ██████╗████████╗██╗   ██╗██████╗ ███████╗
+#    ██╔╝██╔════╝╚══██╔══╝██╔══██╗██║   ██║██╔════╝╚══██╔══╝██║   ██║██╔══██╗██╔════╝
+#   ██╔╝ ███████╗   ██║   ██████╔╝██║   ██║██║        ██║   ██║   ██║██████╔╝█████╗  
+#  ██╔╝  ╚════██║   ██║   ██╔══██╗██║   ██║██║        ██║   ██║   ██║██╔══██╗██╔══╝  
+# ██╔╝   ███████║   ██║   ██║  ██║╚██████╔╝╚██████╗   ██║   ╚██████╔╝██║  ██║███████╗
+# ╚═╝    ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝  ╚═════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚══════╝                                                                           
 
 
 coords = [
@@ -32,92 +32,167 @@ class Character(pygame.sprite.Sprite):
         
         # статы героя.
         self.coins = 0
-        self.health_points = 10
-        self.weapon_points = 3
+        self.health = 6
+        self.weapon = 3
+
     
-    def move(self, direction):
+    def do(self, direction):
         index = [item for sublist in FIELD for item in sublist].index(hero)
         row, col = index // 3, index % 3
-
+        print("health:", self.health, "money:", self.coins, "weapon:", self.weapon)
         if direction == "LEFT":
             try:
-                assert col - 1 >= 0
-                if (FIELD[row][col - 1]).type == "pickup":
-                    (FIELD[row][col - 1]).pick_up()
-            except AttributeError:
-                pass
-            except IndexError:
-                pass
-            except AssertionError:
-                pass
+                if (FIELD[row][col - 1]).type != "enemy":
+                    try:
+                        assert col - 1 >= 0
+                        if (FIELD[row][col - 1]).type == "pickup":
+                            (FIELD[row][col - 1]).pick_up()
+                        
+                    except AttributeError:
+                        pass
+                    except IndexError:
+                        pass
+                    except AssertionError:
+                        pass
 
-            try:
-                assert col - 1 >= 0
-                FIELD[row][col - 1] = hero
-                FIELD[row][col] = None
-                hero.rect.x = coords[row][col - 1][0]
-                print(FIELD)
+                    try:
+                        assert col - 1 >= 0
+                        FIELD[row][col - 1] = hero
+                        FIELD[row][col] = None
+                        hero.rect.x = coords[row][col - 1][0]
+
+                    except IndexError:
+                        pass
+                    except AssertionError:
+                        pass
+                else:
+                    if self.weapon > 0:
+                        FIELD[row][col - 1].deal_damage(self.weapon)
+                    elif self.health > FIELD[row][col + 1].health:
+                        FIELD[row][col - 1].deal_damage(self.health, False)
+                    else:
+                        self.kill()
+                        FIELD[row][col] = None
+            
             except IndexError:
                 pass
-            except AssertionError:
-                pass
+            except AttributeError:
+                try:
+                    assert col - 1 >= 0
+                    FIELD[row][col - 1] = hero
+                    FIELD[row][col] = None
+                    hero.rect.x = coords[row][col - 1][0]
+                except AssertionError:
+                    pass
 
         if direction == "RIGHT":
             try:
-                if (FIELD[row][col + 1]).type == "pickup":
-                    (FIELD[row][col + 1]).pick_up()
-            except AttributeError:
-                pass
+                if (FIELD[row][col + 1]).type != "enemy":
+                    try:
+                        if (FIELD[row][col + 1]).type == "pickup":
+                            (FIELD[row][col + 1]).pick_up()
+                    except AttributeError:
+                        pass
+                    except IndexError:
+                        pass
+
+                    try:
+                        FIELD[row][col + 1] = hero
+                        FIELD[row][col] = None
+                        hero.rect.x = coords[row][col + 1][0]
+                    except IndexError:
+                        pass
+                else:
+                    if self.weapon > 0:
+                        FIELD[row][col + 1].deal_damage(self.weapon, True)
+                    elif self.health > FIELD[row][col + 1].health:
+                        FIELD[row][col + 1].deal_damage(self.health, False)
+                    else:
+                        self.kill()
+                        FIELD[row][col] = None
+
             except IndexError:
                 pass
-
-            try:
+            except AttributeError:
                 FIELD[row][col + 1] = hero
                 FIELD[row][col] = None
                 hero.rect.x = coords[row][col + 1][0]
-                print(FIELD)
-            except IndexError:
-                pass
 
         if direction == "UP":
             try:
-                assert row - 1 >= 0
-                if (FIELD[row - 1][col]).type == "pickup":
-                    (FIELD[row - 1][col]).pick_up()
-            except AttributeError:
-                pass
-            except IndexError:
-                pass
-            except AssertionError:
-                pass
+                if (FIELD[row - 1][col]).type != "enemy":
+                    try:
+                        assert row - 1 >= 0
+                        if (FIELD[row - 1][col]).type == "pickup":
+                            (FIELD[row - 1][col]).pick_up()
+                    except AttributeError:
+                        pass
+                    except IndexError:
+                        pass
+                    except AssertionError:
+                        pass
 
-            try:
-                assert row - 1 >= 0
-                FIELD[row - 1][col] = hero
-                FIELD[row][col] = None
-                hero.rect.y = coords[row - 1][col][1]
-                print(FIELD)
+                    try:
+                        assert row - 1 >= 0
+                        FIELD[row - 1][col] = hero
+                        FIELD[row][col] = None
+                        hero.rect.y = coords[row - 1][col][1]
+                    except IndexError:
+                        pass
+                    except AssertionError:
+                        pass
+                else:
+                    if self.weapon > 0:
+                        FIELD[row - 1][col].deal_damage(self.weapon, True)
+                    elif self.health > FIELD[row - 1][col].health:
+                        FIELD[row - 1][col].deal_damage(self.health, False)
+                    else:
+                        self.kill()
+                        FIELD[row][col] = None
+
             except IndexError:
                 pass
-            except AssertionError:
-                pass
+            except AttributeError:
+                try:
+                    assert row - 1 >= 0
+                    FIELD[row - 1][col] = hero
+                    FIELD[row][col] = None
+                    hero.rect.y = coords[row - 1][col][1]
+                except AssertionError:
+                    pass
 
         if direction == "DOWN":
             try:
-                if (FIELD[row + 1][col]).type == "pickup":
-                    (FIELD[row + 1][col]).pick_up()
-            except AttributeError:
-                pass
-            except IndexError:
-                pass
+                if (FIELD[row + 1][col]).type != "enemy":
+                    try:
+                        if (FIELD[row + 1][col]).type == "pickup":
+                            (FIELD[row + 1][col]).pick_up()
+                    except AttributeError:
+                        pass
+                    except IndexError:
+                        pass
+                    
+                    try:    
+                        FIELD[row + 1][col] = hero
+                        FIELD[row][col] = None
+                        hero.rect.y = coords[row + 1][col][1]
+                    except IndexError:
+                        pass
+                else:
+                    if self.weapon > 0:
+                        FIELD[row + 1][col].deal_damage(self.weapon, True)
+                    elif self.health > FIELD[row + 1][col].health:
+                        FIELD[row + 1][col].deal_damage(self.health, False)
+                    else:
+                        self.kill()
+                        FIELD[row][col] = None
             
-            try:    
+            #except IndexError:
+                pass
+            except AttributeError:
                 FIELD[row + 1][col] = hero
                 FIELD[row][col] = None
                 hero.rect.y = coords[row + 1][col][1]
-                print(FIELD)
-            except IndexError:
-                pass
 
 
 # матрица ячеек поля.
@@ -128,7 +203,7 @@ FIELD = [
             ]
 
 
-# материнский класс пикапов.
+# класс пикапа-монетки.
 class Coin(pygame.sprite.Sprite):
     def __init__(self, x, y, group):
         super().__init__(group)
@@ -146,14 +221,62 @@ class Coin(pygame.sprite.Sprite):
         hero.coins += 1
         self.kill()
 
-# -----------------------
-#   ___ _  _ ___ _____  
-#  |_ _| \| |_ _|_   _| 
-#   | || .` || |  | |   
-#  |___|_|\_|___| |_|   
-#
-# -----------------------
 
+# класс врага-зомби.
+class Zombie(pygame.sprite.Sprite):
+    def __init__(self, x, y, group):
+        super().__init__(group)
+        self.type = "enemy"
+
+        zombie_image = pygame.image.load(f"data/enemy/zombie/6.png")
+        zombie_image = pygame.transform.scale(zombie_image, (150, 150))
+        self.image = zombie_image
+        self.rect = self.image.get_rect()
+        self.rect.x = coords[y][x][0]
+        self.rect.y = coords[y][x][1]
+
+        # статы зомби.
+        self.health = 6
+    
+    def deal_damage(self, damage_dealt, weapon):
+        if weapon == True:
+            if self.health - damage_dealt <= 0:
+                index = [item for sublist in FIELD for item in sublist].index(self)
+                row, col = index // 3, index % 3
+                self.kill()
+                FIELD[row][col] = None
+                hero.weapon = abs(self.health - damage_dealt)
+            else:
+                self.health -= damage_dealt
+                zombie_image = pygame.image.load(f"data/enemy/zombie/{self.health}.png")
+                zombie_image = pygame.transform.scale(zombie_image, (150, 150))
+                self.image = zombie_image
+                hero.weapon = self.health - damage_dealt
+        else:
+            if self.health - damage_dealt <= 0:
+                index = [item for sublist in FIELD for item in sublist].index(self)
+                row, col = index // 3, index % 3
+                hero.health -= self.health
+                self.kill()
+                FIELD[row][col] = None
+                
+            else:
+                self.health -= damage_dealt
+                zombie_image = pygame.image.load(f"data/enemy/zombie/{self.health}.png")
+                zombie_image = pygame.transform.scale(zombie_image, (150, 150))
+                self.image = zombie_image
+                hero.weapon = self.health - damage_dealt
+
+            
+
+
+#     ██╗██╗███╗   ██╗██╗████████╗██╗ █████╗ ██╗     ██╗███████╗ █████╗ ████████╗██╗ ██████╗ ███╗   ██╗
+#    ██╔╝██║████╗  ██║██║╚══██╔══╝██║██╔══██╗██║     ██║╚══███╔╝██╔══██╗╚══██╔══╝██║██╔═══██╗████╗  ██║
+#   ██╔╝ ██║██╔██╗ ██║██║   ██║   ██║███████║██║     ██║  ███╔╝ ███████║   ██║   ██║██║   ██║██╔██╗ ██║
+#  ██╔╝  ██║██║╚██╗██║██║   ██║   ██║██╔══██║██║     ██║ ███╔╝  ██╔══██║   ██║   ██║██║   ██║██║╚██╗██║
+# ██╔╝   ██║██║ ╚████║██║   ██║   ██║██║  ██║███████╗██║███████╗██║  ██║   ██║   ██║╚██████╔╝██║ ╚████║
+# ╚═╝    ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   ╚═╝╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+                                                                                                     
 
 # инициализация и наименование.
 pygame.init()
@@ -168,12 +291,17 @@ hero_sprite = pygame.sprite.Group()
 hero = Character(hero_sprite)
 FIELD[1][1] = hero
 
-# создание группы пикапов.
+# создание группы пикапов и группы врагов.
 pickup_group = pygame.sprite.Group()
+enemy_group = pygame.sprite.Group()
 
 # создание пробной монетки.
 x, y = 0, 2
 FIELD[x][y] = Coin(y, x, pickup_group)
+
+# создание пробного зомби.
+x, y = 2, 2
+FIELD[x][y] = Zombie(y, x, pickup_group)
 
 # фиксирование кадров в секунду на отметке в 60 или 30.
 clock = pygame.time.Clock()
@@ -186,20 +314,24 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
-                hero.move("LEFT")
-            if event.key == pygame.K_RIGHT:
-                hero.move("RIGHT")
-            if event.key == pygame.K_DOWN:
-                hero.move("DOWN")
-            if event.key == pygame.K_UP:
-                hero.move("UP")
+            try:
+                if event.key == pygame.K_LEFT:
+                    hero.do("LEFT")
+                if event.key == pygame.K_RIGHT:
+                    hero.do("RIGHT")
+                if event.key == pygame.K_DOWN:
+                    hero.do("DOWN")
+                if event.key == pygame.K_UP:
+                    hero.do("UP")
+            except ValueError:
+                print("Вы погибли и не можете двигаться.", random.randint(1, 8))
 
     screen.fill((140, 110, 45))
 
     # прорисовка спрайтов.
     hero_sprite.draw(screen)
     pickup_group.draw(screen)
+    enemy_group.draw(screen)
 
     pygame.display.flip()
     clock.tick(fps)
