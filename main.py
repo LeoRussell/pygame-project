@@ -10,105 +10,141 @@ import pygame
 # -----------------------------------
 
 
+coords = [
+        [(10, 160), (170, 160), (330, 160)],
+        [(10, 320), (170, 320), (330, 320)],
+        [(10, 480), (170, 480), (330, 480)]
+        ]
+
+
 # класс персонажа (игрока).
 class Character(pygame.sprite.Sprite):
-    hero_image = pygame.image.load("data/hero.png")
-    hero_image = pygame.transform.scale(hero_image, (140, 170))
+    hero_image = pygame.image.load("data/character/steve.png")
+    hero_image = pygame.transform.scale(hero_image, (150, 150))
 
 
     def __init__(self, group):
         super().__init__(group)
         self.image = self.hero_image
         self.rect = self.image.get_rect()
-        self.rect.x = 201
-        self.rect.y = 100
+        self.rect.x = coords[1][1][0]
+        self.rect.y = coords[1][1][1]
         
         # статы героя.
-        self.health_points = 100
-        self.weapon_points = 50
+        self.coins = 0
+        self.health_points = 10
+        self.weapon_points = 3
     
     def move(self, direction):
-        index = [item for sublist in field.tiles for item in sublist].index(hero)
+        index = [item for sublist in FIELD for item in sublist].index(hero)
         row, col = index // 3, index % 3
+
         if direction == "LEFT":
             try:
                 assert col - 1 >= 0
-                field.tiles[row][col - 1] = hero
-                field.tiles[row][col] = None
-                hero.rect.x -= 125
+                if (FIELD[row][col - 1]).type == "pickup":
+                    (FIELD[row][col - 1]).pick_up()
+            except AttributeError:
+                pass
             except IndexError:
                 pass
             except AssertionError:
                 pass
-        if direction == "RIGHT":
+
             try:
-                field.tiles[row][col + 1] = hero
-                field.tiles[row][col] = None
-                hero.rect.x += 125
+                assert col - 1 >= 0
+                FIELD[row][col - 1] = hero
+                FIELD[row][col] = None
+                hero.rect.x = coords[row][col - 1][0]
+                print(FIELD)
             except IndexError:
                 pass
+            except AssertionError:
+                pass
+
+        if direction == "RIGHT":
+            try:
+                if (FIELD[row][col + 1]).type == "pickup":
+                    (FIELD[row][col + 1]).pick_up()
+            except AttributeError:
+                pass
+            except IndexError:
+                pass
+
+            try:
+                FIELD[row][col + 1] = hero
+                FIELD[row][col] = None
+                hero.rect.x = coords[row][col + 1][0]
+                print(FIELD)
+            except IndexError:
+                pass
+
         if direction == "UP":
             try:
                 assert row - 1 >= 0
-                field.tiles[row - 1][col] = hero
-                field.tiles[row][col] = None
-                hero.rect.y -= 125
+                if (FIELD[row - 1][col]).type == "pickup":
+                    (FIELD[row - 1][col]).pick_up()
+            except AttributeError:
+                pass
             except IndexError:
                 pass
             except AssertionError:
                 pass
+
+            try:
+                assert row - 1 >= 0
+                FIELD[row - 1][col] = hero
+                FIELD[row][col] = None
+                hero.rect.y = coords[row - 1][col][1]
+                print(FIELD)
+            except IndexError:
+                pass
+            except AssertionError:
+                pass
+
         if direction == "DOWN":
+            try:
+                if (FIELD[row + 1][col]).type == "pickup":
+                    (FIELD[row + 1][col]).pick_up()
+            except AttributeError:
+                pass
+            except IndexError:
+                pass
+            
             try:    
-                field.tiles[row + 1][col] = hero
-                field.tiles[row][col] = None
-                hero.rect.y += 125
+                FIELD[row + 1][col] = hero
+                FIELD[row][col] = None
+                hero.rect.y = coords[row + 1][col][1]
+                print(FIELD)
             except IndexError:
                 pass
 
 
-# класс поля.
-class Field(pygame.sprite.Sprite):
-    field_image = pygame.image.load("data/field.png")
-    field_image = pygame.transform.scale(field_image, (500, 500))
-
-
-    def __init__(self, group):
-        super().__init__(group)
-        self.image = self.field_image
-        self.rect = self.image.get_rect()
-        self.rect.x = 150
-        self.rect.y = 50
-        self.tiles = [
-                    [None, None, None],
-                    [None, None, None],
-                    [None, None, None]
-                    ]
+# матрица ячеек поля.
+FIELD = [
+            [None, None, None],
+            [None, None, None],
+            [None, None, None]
+            ]
 
 
 # материнский класс пикапов.
-class Pickup(pygame.sprite.Sprite):
-    def __init__(self, image, group):
+class Coin(pygame.sprite.Sprite):
+    def __init__(self, x, y, group):
         super().__init__(group)
-        pickup_image = pygame.image.load(f"data/{image}")
-        pickup_image = pygame.transform.scale(pickup_image, (140, 170))
-        self.image = self.pickup_image
+        self.type = "pickup"
+
+        coin_image = pygame.image.load(f"data/pickup/gold.png")
+        coin_image = pygame.transform.scale(coin_image, (150, 150))
+        self.image = coin_image
         self.rect = self.image.get_rect()
-        self.rect.x = None
-        self.rect.y = None
-        
-        # "вместимость" пикапа.
-        self.value = 0
+        self.rect.x = coords[y][x][0]
+        self.rect.y = coords[y][x][1]
+
     
-
-    # функция получения пикапа
-    def pickup_get(self):
-        # self.hero_pickup_value += self.value
-        index = [item for sublist in field.tiles for item in sublist].index(hero)
-        row, col = index // 3, index % 3
-        field.tiles[row][col] == None
+    def pick_up(self):
+        hero.coins += 1
         self.kill()
-
-
 
 # -----------------------
 #   ___ _  _ ___ _____  
@@ -124,17 +160,20 @@ pygame.init()
 pygame.display.set_caption('Игра?')
 
 # создание окна по размеру.
-size = width, height = 800, 650
+size = width, height = 490, 650
 screen = pygame.display.set_mode(size)
-
-# создание поля и его спрайта. 
-field_sprite = pygame.sprite.Group()
-field = Field(field_sprite)
 
 # создание героя.
 hero_sprite = pygame.sprite.Group()
 hero = Character(hero_sprite)
-field.tiles[0][0] = hero
+FIELD[1][1] = hero
+
+# создание группы пикапов.
+pickup_group = pygame.sprite.Group()
+
+# создание пробной монетки.
+x, y = 0, 2
+FIELD[x][y] = Coin(y, x, pickup_group)
 
 # фиксирование кадров в секунду на отметке в 60 или 30.
 clock = pygame.time.Clock()
@@ -156,11 +195,11 @@ while running:
             if event.key == pygame.K_UP:
                 hero.move("UP")
 
-    screen.fill((255, 255, 255))
+    screen.fill((140, 110, 45))
 
     # прорисовка спрайтов.
-    field_sprite.draw(screen)
     hero_sprite.draw(screen)
+    pickup_group.draw(screen)
 
     pygame.display.flip()
     clock.tick(fps)
