@@ -10,6 +10,7 @@ import random
 # ╚═╝    ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝  ╚═════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚══════╝                                                                           
 
 
+# координаты ячеек поля.
 coords = [
         [(10, 160), (170, 160), (330, 160)],
         [(10, 320), (170, 320), (330, 320)],
@@ -79,7 +80,7 @@ class Indicator_Weapon(pygame.sprite.Sprite):
 
 # класс персонажа (игрока).
 class Character(pygame.sprite.Sprite):
-    hero_image = pygame.image.load("data/character/steve.png")
+    hero_image = pygame.image.load("data/character/alex.png")
     hero_image = pygame.transform.scale(hero_image, (150, 150))
 
 
@@ -99,7 +100,8 @@ class Character(pygame.sprite.Sprite):
     def do(self, direction):
         index = [item for sublist in FIELD for item in sublist].index(hero)
         row, col = index // 3, index % 3
-        print("health:", self.health, "money:", self.coins, "weapon:", self.weapon)
+
+
         if direction == "LEFT":
             try:
                 if (FIELD[row][col - 1]).type != "enemy":
@@ -280,7 +282,9 @@ class Character(pygame.sprite.Sprite):
                 FIELD[row + 1][col] = hero
                 FIELD[row][col] = None
                 hero.rect.y = coords[row + 1][col][1]
-            
+
+        if hero.weapon < 0:
+            hero.weapon = 0
 
 
 # матрица ячеек поля.
@@ -290,6 +294,27 @@ FIELD = [
             [None, None, None]
             ]
 
+
+# класс пикапа-леченья (зелье).
+class Potion_Heal(pygame.sprite.Sprite):
+    def __init__(self, x, y, group):
+        super().__init__(group)
+        self.type = "pickup"
+
+        heal_image = pygame.image.load(f"data/pickup/heal_potion.png")
+        heal_image = pygame.transform.scale(heal_image, (150, 150))
+        self.image = heal_image
+        self.rect = self.image.get_rect()
+        self.rect.x = coords[y][x][0]
+        self.rect.y = coords[y][x][1]
+
+    
+    def pick_up(self):
+        if hero.health + 3 > 10:
+            hero.health = 10
+        else:
+            hero.health += 3
+        self.kill()
 
 # класс пикапа-монетки.
 class Coin(pygame.sprite.Sprite):
@@ -306,7 +331,54 @@ class Coin(pygame.sprite.Sprite):
 
     
     def pick_up(self):
-        hero.coins += 1
+        if hero.coins + 1 > 99:
+            hero.coins == 99
+        else:
+            hero.coins += 1
+        self.kill()
+
+
+# класс пикапа-меча (железный).
+class Sword_Iron(pygame.sprite.Sprite):
+    def __init__(self, x, y, group):
+        super().__init__(group)
+        self.type = "pickup"
+
+        weapon_image = pygame.image.load(f"data/pickup/iron_sword.png")
+        weapon_image = pygame.transform.scale(weapon_image, (150, 150))
+        self.image = weapon_image
+        self.rect = self.image.get_rect()
+        self.rect.x = coords[y][x][0]
+        self.rect.y = coords[y][x][1]
+
+    
+    def pick_up(self):
+        if hero.weapon + 3 > 15:
+            hero.weapon = 15
+        else:
+            hero.weapon += 3
+        self.kill()
+
+
+# класс пикапа-меча (алмазный).
+class Sword_Diamond(pygame.sprite.Sprite):
+    def __init__(self, x, y, group):
+        super().__init__(group)
+        self.type = "pickup"
+
+        weapon_image = pygame.image.load(f"data/pickup/diamond_sword.png")
+        weapon_image = pygame.transform.scale(weapon_image, (150, 150))
+        self.image = weapon_image
+        self.rect = self.image.get_rect()
+        self.rect.x = coords[y][x][0]
+        self.rect.y = coords[y][x][1]
+
+    
+    def pick_up(self):
+        if hero.weapon + 5 > 15:
+            hero.weapon = 15
+        else:
+            hero.weapon += 5
         self.kill()
 
 
@@ -332,11 +404,11 @@ class Zombie(pygame.sprite.Sprite):
                 index = [item for sublist in FIELD for item in sublist].index(self)
                 row, col = index // 3, index % 3
                 self.die(row, col)
-                hero.weapon = abs(self.health - damage_dealt)
+                hero.weapon = hero.weapon - self.health
             else:
                 self.health -= damage_dealt
                 self.show_health()
-                hero.weapon = self.health - damage_dealt
+                hero.weapon = 0
         else:
             if self.health - damage_dealt <= 0:
                 index = [item for sublist in FIELD for item in sublist].index(self)
@@ -347,7 +419,55 @@ class Zombie(pygame.sprite.Sprite):
             else:
                 self.health -= damage_dealt
                 self.show_health()
-                hero.weapon = self.health - damage_dealt
+                
+    
+    def die(self, row, col):
+        self.kill()
+        FIELD[row][col] = None
+    
+    def show_health(self):
+        zombie_image = pygame.image.load(f"data/enemy/zombie/{self.health}.png")
+        zombie_image = pygame.transform.scale(zombie_image, (150, 150))
+        self.image = zombie_image
+
+
+class Helmet_Zombie(pygame.sprite.Sprite):
+    def __init__(self, x, y, group):
+        super().__init__(group)
+        self.type = "enemy"
+
+        zombie_image = pygame.image.load(f"data/enemy/helmet_zombie/7.png")
+        zombie_image = pygame.transform.scale(zombie_image, (150, 150))
+        self.image = zombie_image
+        self.rect = self.image.get_rect()
+        self.rect.x = coords[y][x][0]
+        self.rect.y = coords[y][x][1]
+
+        # статы зомби.
+        self.health = 7
+    
+    def deal_damage(self, damage_dealt, weapon):
+        if weapon == True:
+            if self.health - damage_dealt <= 0:
+                index = [item for sublist in FIELD for item in sublist].index(self)
+                row, col = index // 3, index % 3
+                self.die(row, col)
+                hero.weapon = hero.weapon - self.health
+            else:
+                self.health -= damage_dealt
+                self.show_health()
+                hero.weapon = 0
+        else:
+            if self.health - damage_dealt <= 0:
+                index = [item for sublist in FIELD for item in sublist].index(self)
+                row, col = index // 3, index % 3
+                hero.health -= self.health
+                self.die(row, col)
+                
+            else:
+                self.health -= damage_dealt
+                self.show_health()
+                
     
     def die(self, row, col):
         self.kill()
@@ -390,13 +510,25 @@ FIELD[1][1] = hero
 pickup_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
 
-# создание пробной монетки.
+# создание пробных пикапов.
 x, y = 0, 2
 FIELD[x][y] = Coin(y, x, pickup_group)
 
+x, y = 1, 2
+FIELD[x][y] = Sword_Iron(y, x, pickup_group)
+
+x, y = 2, 0
+FIELD[x][y] = Sword_Diamond(y, x, pickup_group)
+
+x, y = 0, 1
+FIELD[x][y] = Potion_Heal(y, x, pickup_group)
+
+x, y = 2, 1
+FIELD[x][y] = Potion_Heal(y, x, pickup_group)
+
 # создание пробных зомби.
 x, y = 0, 0
-FIELD[x][y] = Zombie(y, x, pickup_group)
+FIELD[x][y] = Helmet_Zombie(y, x, pickup_group)
 
 x, y = 2, 2
 FIELD[x][y] = Zombie(y, x, pickup_group)
