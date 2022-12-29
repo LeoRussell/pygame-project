@@ -17,6 +17,66 @@ coords = [
         ]
 
 
+# класс индикатора монеток.
+class Indicator_Coins(pygame.sprite.Sprite):
+    def __init__(self, group):
+        super().__init__(group)
+        self.type = "indicator"
+
+        coin_indicator_image = pygame.image.load(f"data/indicator/gold/0.png")
+        coin_indicator_image = pygame.transform.scale(coin_indicator_image, (150, 150))
+        self.image = coin_indicator_image
+        self.rect = self.image.get_rect()
+        self.rect.x = 10
+        self.rect.y = 10
+
+    
+    def show_up(self, coins):
+        coin_indicator_image = pygame.image.load(f"data/indicator/gold/{coins}.png")
+        coin_indicator_image = pygame.transform.scale(coin_indicator_image, (150, 150))
+        self.image = coin_indicator_image
+
+
+# класс индикатора жизней.
+class Indicator_Health(pygame.sprite.Sprite):
+    def __init__(self, group):
+        super().__init__(group)
+        self.type = "indicator"
+
+        health_indicator_image = pygame.image.load(f"data/indicator/health/0.png")
+        health_indicator_image = pygame.transform.scale(health_indicator_image, (150, 150))
+        self.image = health_indicator_image
+        self.rect = self.image.get_rect()
+        self.rect.x = 165
+        self.rect.y = 10
+
+    
+    def show_up(self, health):
+        health_indicator_image = pygame.image.load(f"data/indicator/health/{health}.png")
+        health_indicator_image = pygame.transform.scale(health_indicator_image, (150, 150))
+        self.image = health_indicator_image
+
+
+# класс индикатора оружия.
+class Indicator_Weapon(pygame.sprite.Sprite):
+    def __init__(self, group):
+        super().__init__(group)
+        self.type = "indicator"
+
+        weapon_indicator_image = pygame.image.load(f"data/indicator/weapon/0.png")
+        weapon_indicator_image = pygame.transform.scale(weapon_indicator_image, (150, 150))
+        self.image = weapon_indicator_image
+        self.rect = self.image.get_rect()
+        self.rect.x = 325
+        self.rect.y = 10
+
+    
+    def show_up(self, weapon):
+        weapon_indicator_image = pygame.image.load(f"data/indicator/weapon/{weapon}.png")
+        weapon_indicator_image = pygame.transform.scale(weapon_indicator_image, (150, 150))
+        self.image = weapon_indicator_image
+
+
 # класс персонажа (игрока).
 class Character(pygame.sprite.Sprite):
     hero_image = pygame.image.load("data/character/steve.png")
@@ -67,10 +127,16 @@ class Character(pygame.sprite.Sprite):
                         pass
                 else:
                     if self.weapon > 0:
-                        FIELD[row][col - 1].deal_damage(self.weapon)
-                    elif self.health > FIELD[row][col + 1].health:
+                        FIELD[row][col - 1].deal_damage(self.weapon, True)
+                    elif self.health > FIELD[row][col - 1].health:
                         FIELD[row][col - 1].deal_damage(self.health, False)
                     else:
+                        if FIELD[row][col - 1].health - self.health == 0:
+                            FIELD[row][col - 1].die(row, col - 1)
+                        else:
+                            FIELD[row][col - 1].health -= self.health
+                            FIELD[row][col - 1].show_health()
+                        self.health = 0
                         self.kill()
                         FIELD[row][col] = None
             
@@ -84,6 +150,7 @@ class Character(pygame.sprite.Sprite):
                     hero.rect.x = coords[row][col - 1][0]
                 except AssertionError:
                     pass
+            
 
         if direction == "RIGHT":
             try:
@@ -108,6 +175,12 @@ class Character(pygame.sprite.Sprite):
                     elif self.health > FIELD[row][col + 1].health:
                         FIELD[row][col + 1].deal_damage(self.health, False)
                     else:
+                        if FIELD[row][col + 1].health - self.health == 0:
+                            FIELD[row][col + 1].die(row, col + 1)
+                        else:
+                            FIELD[row][col + 1].health -= self.health
+                            FIELD[row][col + 1].show_health()
+                        self.health = 0
                         self.kill()
                         FIELD[row][col] = None
 
@@ -117,6 +190,7 @@ class Character(pygame.sprite.Sprite):
                 FIELD[row][col + 1] = hero
                 FIELD[row][col] = None
                 hero.rect.x = coords[row][col + 1][0]
+            
 
         if direction == "UP":
             try:
@@ -147,6 +221,12 @@ class Character(pygame.sprite.Sprite):
                     elif self.health > FIELD[row - 1][col].health:
                         FIELD[row - 1][col].deal_damage(self.health, False)
                     else:
+                        if FIELD[row - 1][col].health - self.health == 0:
+                            FIELD[row - 1][col].die(row - 1, col)
+                        else:
+                            FIELD[row - 1][col].health -= self.health
+                            FIELD[row - 1][col].show_health()
+                        self.health = 0
                         self.kill()
                         FIELD[row][col] = None
 
@@ -160,6 +240,7 @@ class Character(pygame.sprite.Sprite):
                     hero.rect.y = coords[row - 1][col][1]
                 except AssertionError:
                     pass
+            
 
         if direction == "DOWN":
             try:
@@ -184,15 +265,22 @@ class Character(pygame.sprite.Sprite):
                     elif self.health > FIELD[row + 1][col].health:
                         FIELD[row + 1][col].deal_damage(self.health, False)
                     else:
+                        if FIELD[row + 1][col].health - self.health == 0:
+                            FIELD[row + 1][col].die(row + 1, col)
+                        else:
+                            FIELD[row + 1][col].health -= self.health
+                            FIELD[row + 1][col].show_health()
+                        self.health = 0
                         self.kill()
                         FIELD[row][col] = None
             
-            #except IndexError:
+            except IndexError:
                 pass
             except AttributeError:
                 FIELD[row + 1][col] = hero
                 FIELD[row][col] = None
                 hero.rect.y = coords[row + 1][col][1]
+            
 
 
 # матрица ячеек поля.
@@ -243,31 +331,32 @@ class Zombie(pygame.sprite.Sprite):
             if self.health - damage_dealt <= 0:
                 index = [item for sublist in FIELD for item in sublist].index(self)
                 row, col = index // 3, index % 3
-                self.kill()
-                FIELD[row][col] = None
+                self.die(row, col)
                 hero.weapon = abs(self.health - damage_dealt)
             else:
                 self.health -= damage_dealt
-                zombie_image = pygame.image.load(f"data/enemy/zombie/{self.health}.png")
-                zombie_image = pygame.transform.scale(zombie_image, (150, 150))
-                self.image = zombie_image
+                self.show_health()
                 hero.weapon = self.health - damage_dealt
         else:
             if self.health - damage_dealt <= 0:
                 index = [item for sublist in FIELD for item in sublist].index(self)
                 row, col = index // 3, index % 3
                 hero.health -= self.health
-                self.kill()
-                FIELD[row][col] = None
+                self.die(row, col)
                 
             else:
                 self.health -= damage_dealt
-                zombie_image = pygame.image.load(f"data/enemy/zombie/{self.health}.png")
-                zombie_image = pygame.transform.scale(zombie_image, (150, 150))
-                self.image = zombie_image
+                self.show_health()
                 hero.weapon = self.health - damage_dealt
-
-            
+    
+    def die(self, row, col):
+        self.kill()
+        FIELD[row][col] = None
+    
+    def show_health(self):
+        zombie_image = pygame.image.load(f"data/enemy/zombie/{self.health}.png")
+        zombie_image = pygame.transform.scale(zombie_image, (150, 150))
+        self.image = zombie_image
 
 
 #     ██╗██╗███╗   ██╗██╗████████╗██╗ █████╗ ██╗     ██╗███████╗ █████╗ ████████╗██╗ ██████╗ ███╗   ██╗
@@ -286,6 +375,12 @@ pygame.display.set_caption('Игра?')
 size = width, height = 490, 650
 screen = pygame.display.set_mode(size)
 
+# создание индикаторов.
+indicators_group = pygame.sprite.Group()
+coin_indicator = Indicator_Coins(indicators_group)
+health_indicator = Indicator_Health(indicators_group)
+weapon_indicator = Indicator_Weapon(indicators_group)
+
 # создание героя.
 hero_sprite = pygame.sprite.Group()
 hero = Character(hero_sprite)
@@ -299,7 +394,10 @@ enemy_group = pygame.sprite.Group()
 x, y = 0, 2
 FIELD[x][y] = Coin(y, x, pickup_group)
 
-# создание пробного зомби.
+# создание пробных зомби.
+x, y = 0, 0
+FIELD[x][y] = Zombie(y, x, pickup_group)
+
 x, y = 2, 2
 FIELD[x][y] = Zombie(y, x, pickup_group)
 
@@ -326,12 +424,18 @@ while running:
             except ValueError:
                 print("Вы погибли и не можете двигаться.", random.randint(1, 8))
 
-    screen.fill((140, 110, 45))
+    screen.fill((50, 50, 50))
+
+    # отображение индикаторов.
+    coin_indicator.show_up(hero.coins)
+    health_indicator.show_up(hero.health)
+    weapon_indicator.show_up(hero.weapon)
 
     # прорисовка спрайтов.
     hero_sprite.draw(screen)
     pickup_group.draw(screen)
     enemy_group.draw(screen)
+    indicators_group.draw(screen)
 
     pygame.display.flip()
     clock.tick(fps)
