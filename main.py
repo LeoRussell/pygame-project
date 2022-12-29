@@ -79,10 +79,13 @@ class Indicator_Coins(pygame.sprite.Sprite):
         self.rect.y = 10
 
     
-    def show_up(self, steps):
-        coin_indicator_image = pygame.image.load(f"data/indicator/gold/{steps}.png")
-        coin_indicator_image = pygame.transform.scale(coin_indicator_image, (150, 150))
-        self.image = coin_indicator_image
+    def show_up(self, coins):
+        try:
+            coin_indicator_image = pygame.image.load(f"data/indicator/gold/{coins}.png")
+            coin_indicator_image = pygame.transform.scale(coin_indicator_image, (150, 150))
+            self.image = coin_indicator_image
+        except FileNotFoundError:
+            pass
 
 
 # класс индикатора шагов.
@@ -100,9 +103,12 @@ class Indicator_Steps(pygame.sprite.Sprite):
 
     
     def show_up(self, steps):
-        steps_indicator_image = pygame.image.load(f"data/indicator/step/{steps}.png")
-        steps_indicator_image = pygame.transform.scale(steps_indicator_image, (150, 150))
-        self.image = steps_indicator_image
+        try:
+            steps_indicator_image = pygame.image.load(f"data/indicator/step/{steps}.png")
+            steps_indicator_image = pygame.transform.scale(steps_indicator_image, (150, 150))
+            self.image = steps_indicator_image
+        except FileNotFoundError:
+            pass
 
 
 # класс индикатора жизней.
@@ -212,9 +218,9 @@ class Character(pygame.sprite.Sprite):
                         FIELD[row][col] = None
             
             except IndexError:
-                pass
+                self.steps -= 1
             except AssertionError:
-                pass
+                self.steps -= 1
             except AttributeError:
                 try:
                     assert col - 1 >= 0
@@ -260,7 +266,7 @@ class Character(pygame.sprite.Sprite):
                         FIELD[row][col] = None
 
             except IndexError:
-                pass
+                self.steps -= 1
             except AttributeError:
                 FIELD[row][col + 1] = hero
                 FIELD[row][col] = None
@@ -309,9 +315,9 @@ class Character(pygame.sprite.Sprite):
                         FIELD[row][col] = None
 
             except IndexError:
-                pass
+                self.steps -= 1
             except AssertionError:
-                pass
+                self.steps -= 1
             except AttributeError:
                 try:
                     assert row - 1 >= 0
@@ -358,7 +364,7 @@ class Character(pygame.sprite.Sprite):
                         FIELD[row][col] = None
             
             except IndexError:
-                pass
+                self.steps -= 1
             except AttributeError:
                 FIELD[row + 1][col] = hero
                 FIELD[row][col] = None
