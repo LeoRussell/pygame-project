@@ -104,12 +104,13 @@ class Character(pygame.sprite.Sprite):
 
         if direction == "LEFT":
             try:
-                if (FIELD[row][col - 1]).type != "enemy":
+                if (FIELD[row][col - 1]).type == "active":
+                            (FIELD[row][col - 1]).activate()
+                elif (FIELD[row][col - 1]).type != "enemy":
                     try:
                         assert col - 1 >= 0
                         if (FIELD[row][col - 1]).type == "pickup":
                             (FIELD[row][col - 1]).pick_up()
-                        
                     except AttributeError:
                         pass
                     except IndexError:
@@ -156,7 +157,9 @@ class Character(pygame.sprite.Sprite):
 
         if direction == "RIGHT":
             try:
-                if (FIELD[row][col + 1]).type != "enemy":
+                if (FIELD[row][col + 1]).type == "active":
+                            (FIELD[row][col + 1]).activate()
+                elif (FIELD[row][col + 1]).type != "enemy":
                     try:
                         if (FIELD[row][col + 1]).type == "pickup":
                             (FIELD[row][col + 1]).pick_up()
@@ -196,7 +199,9 @@ class Character(pygame.sprite.Sprite):
 
         if direction == "UP":
             try:
-                if (FIELD[row - 1][col]).type != "enemy":
+                if (FIELD[row - 1][col]).type == "active":
+                            (FIELD[row - 1][col]).activate()
+                elif (FIELD[row - 1][col]).type != "enemy":
                     try:
                         assert row - 1 >= 0
                         if (FIELD[row - 1][col]).type == "pickup":
@@ -246,10 +251,13 @@ class Character(pygame.sprite.Sprite):
 
         if direction == "DOWN":
             try:
-                if (FIELD[row + 1][col]).type != "enemy":
+                if (FIELD[row + 1][col]).type == "active":
+                            (FIELD[row + 1][col]).activate()
+                elif (FIELD[row + 1][col]).type != "enemy":
                     try:
                         if (FIELD[row + 1][col]).type == "pickup":
                             (FIELD[row + 1][col]).pick_up()
+                        
                     except AttributeError:
                         pass
                     except IndexError:
@@ -337,6 +345,27 @@ class Coin(pygame.sprite.Sprite):
             hero.coins += 1
         self.kill()
 
+
+# класс активного предмета сундук.
+class Chest(pygame.sprite.Sprite):
+    def __init__(self, x, y, group):
+        super().__init__(group)
+        self.type = "active"
+        chest_image = pygame.image.load(f"data/activate/chest.png")
+        chest_image = pygame.transform.scale(chest_image, (150, 150))
+        self.image = chest_image
+        self.rect = self.image.get_rect()
+        self.rect.x = coords[y][x][0]
+        self.rect.y = coords[y][x][1]
+    
+
+    def activate(self):
+        index = [item for sublist in FIELD for item in sublist].index(self)
+        row, col = index // 3, index % 3
+        self.kill()
+        object = (["Coin", "Sword_Iron", "Sword_Diamond", "Potion_Heal"])[random.randint(0, 2)]
+        FIELD[row][col] = eval(f'{object}(col, row, pickup_group)')
+                
 
 # класс пикапа-меча (железный).
 class Sword_Iron(pygame.sprite.Sprite):
@@ -506,9 +535,10 @@ hero_sprite = pygame.sprite.Group()
 hero = Character(hero_sprite)
 FIELD[1][1] = hero
 
-# создание группы пикапов и группы врагов.
+# создание группы пикапов, группы врагов и группы активируемых предеметов..
 pickup_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
+activate_group = pygame.sprite.Group()
 
 # создание пробных пикапов.
 x, y = 0, 2
@@ -526,14 +556,18 @@ FIELD[x][y] = Potion_Heal(y, x, pickup_group)
 x, y = 2, 1
 FIELD[x][y] = Potion_Heal(y, x, pickup_group)
 
-# создание пробных зомби.
+# создание активируемого предмета.
+x, y = 1, 0
+FIELD[x][y] = Chest(y, x, activate_group)
+
+# создание пробных врагов.
 x, y = 0, 0
 FIELD[x][y] = Helmet_Zombie(y, x, pickup_group)
 
 x, y = 2, 2
 FIELD[x][y] = Zombie(y, x, pickup_group)
 
-# фиксирование кадров в секунду на отметке в 60 или 30.
+# фиксирование кадров в секунду.
 clock = pygame.time.Clock()
 fps = 30
 
@@ -568,6 +602,7 @@ while running:
     pickup_group.draw(screen)
     enemy_group.draw(screen)
     indicators_group.draw(screen)
+    activate_group.draw(screen)
 
     pygame.display.flip()
     clock.tick(fps)
