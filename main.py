@@ -17,6 +17,41 @@ coords = [
         [(10, 480), (170, 480), (330, 480)]
         ]
 
+
+# класс индикатора следующей клетки.
+class Next_Tile_Indicator(pygame.sprite.Sprite):
+    def __init__(self, group):
+        super().__init__(group)
+        self.type = "indicator"
+
+        next_tile_image = pygame.image.load(f"data/tile.png")
+        next_tile_image = pygame.transform.scale(next_tile_image, (150, 150))
+        self.image = next_tile_image
+        self.rect = self.image.get_rect()
+        self.rect.x = 130
+        self.rect.y = 650
+
+
+    def show_up(self, object):
+        object = eval(f"{object}(0, 0)")
+        image = pygame.transform.scale(object.image, (125, 125))
+        object.kill()
+        self.image = image 
+
+
+# класс иконки индикатора следующей клетки.
+class Next_Tile_Indicator_Icon(pygame.sprite.Sprite):
+    def __init__(self, group):
+        super().__init__(group)
+        self.type = "indicator"
+
+        self.image = pygame.transform.scale(pygame.image.load(f"data/indicator/next_tile/next.png"), (150, 150))
+        self.rect = self.image.get_rect()
+        self.rect.x = 55
+        self.rect.y = 640
+
+
+# класс пустой клетки.
 class Blank_Tile(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(tiles)
@@ -28,6 +63,7 @@ class Blank_Tile(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = coords[y][x][0]
         self.rect.y = coords[y][x][1]
+
 
 # класс индикатора монеток.
 class Indicator_Coins(pygame.sprite.Sprite):
@@ -43,10 +79,30 @@ class Indicator_Coins(pygame.sprite.Sprite):
         self.rect.y = 10
 
     
-    def show_up(self, coins):
-        coin_indicator_image = pygame.image.load(f"data/indicator/gold/{coins}.png")
+    def show_up(self, steps):
+        coin_indicator_image = pygame.image.load(f"data/indicator/gold/{steps}.png")
         coin_indicator_image = pygame.transform.scale(coin_indicator_image, (150, 150))
         self.image = coin_indicator_image
+
+
+# класс индикатора шагов.
+class Indicator_Steps(pygame.sprite.Sprite):
+    def __init__(self, group):
+        super().__init__(group)
+        self.type = "indicator"
+
+        steps_indicator_image = pygame.image.load(f"data/indicator/step/0.png")
+        steps_indicator_image = pygame.transform.scale(steps_indicator_image, (150, 150))
+        self.image = steps_indicator_image
+        self.rect = self.image.get_rect()
+        self.rect.x = 300
+        self.rect.y = 640
+
+    
+    def show_up(self, steps):
+        steps_indicator_image = pygame.image.load(f"data/indicator/step/{steps}.png")
+        steps_indicator_image = pygame.transform.scale(steps_indicator_image, (150, 150))
+        self.image = steps_indicator_image
 
 
 # класс индикатора жизней.
@@ -106,7 +162,7 @@ class Character(pygame.sprite.Sprite):
         self.coins = 0
         self.health = 6
         self.weapon = 3
-
+        self.steps = 0
     
     def do(self, direction):
         index = [item for sublist in FIELD for item in sublist].index(hero)
@@ -379,8 +435,6 @@ class Chest(pygame.sprite.Sprite):
     def activate(self):
         index = [item for sublist in FIELD for item in sublist].index(self)
         row, col = index // 3, index % 3
-        chest_image = pygame.transform.scale(self.chest_image, (160, 160))
-        chest_image = pygame.transform.scale(self.chest_image, (150, 150))
         self.kill()
         object = (["Coin", "Sword_Iron", "Sword_Diamond", "Potion_Heal"])[random.randint(0, 2)]
         FIELD[row][col] = eval(f'{object}(col, row)')
@@ -542,7 +596,7 @@ pygame.init()
 pygame.display.set_caption('Игра?')
 
 # создание окна по размеру.
-size = width, height = 490, 650
+size = width, height = 490, 800
 screen = pygame.display.set_mode(size)
 
 # создание индикаторов.
@@ -550,6 +604,9 @@ indicators_group = pygame.sprite.Group()
 coin_indicator = Indicator_Coins(indicators_group)
 health_indicator = Indicator_Health(indicators_group)
 weapon_indicator = Indicator_Weapon(indicators_group)
+next_tile_indicator = Next_Tile_Indicator(indicators_group)
+next_tile_indicator_icon = Next_Tile_Indicator_Icon(indicators_group)
+steps_indicator = Indicator_Steps(indicators_group)
 
 # создание пустых тайлов.
 tiles = pygame.sprite.Group()
@@ -571,14 +628,16 @@ activate_group = pygame.sprite.Group()
 clock = pygame.time.Clock()
 fps = 15
 
+object = random.choice(objects)
 # запуск программы.
 running = True
 while running:
     for row in range(len(FIELD)):
         for col in range(len(FIELD[row])):
             if FIELD[row][col] == None:
-                object = random.choice(objects)
                 FIELD[row][col] = eval(f'{object}(col, row)')
+                object = random.choice(objects)
+                next_tile_indicator.show_up(object)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -596,6 +655,8 @@ while running:
                         hero.do("DOWN")
                     if event.key == pygame.K_UP or event.key == pygame.K_w:
                         hero.do("UP")
+
+                    hero.steps += 1
                 except ValueError:
                     print("Вы погибли и не можете двигаться.", random.randint(1, 8))
 
@@ -613,6 +674,7 @@ while running:
     coin_indicator.show_up(hero.coins)
     health_indicator.show_up(hero.health)
     weapon_indicator.show_up(hero.weapon)
+    steps_indicator.show_up(hero.steps)
     
     pygame.display.flip()
     clock.tick(fps)
