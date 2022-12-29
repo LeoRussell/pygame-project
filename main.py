@@ -17,6 +17,17 @@ coords = [
         [(10, 480), (170, 480), (330, 480)]
         ]
 
+class Blank_Tile(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(tiles)
+        self.type = "tile"
+
+        tile_image = pygame.image.load(f"data/tile.png")
+        tile_image = pygame.transform.scale(tile_image, (150, 150))
+        self.image = tile_image
+        self.rect = self.image.get_rect()
+        self.rect.x = coords[y][x][0]
+        self.rect.y = coords[y][x][1]
 
 # класс индикатора монеток.
 class Indicator_Coins(pygame.sprite.Sprite):
@@ -84,8 +95,8 @@ class Character(pygame.sprite.Sprite):
     hero_image = pygame.transform.scale(hero_image, (150, 150))
 
 
-    def __init__(self, group):
-        super().__init__(group)
+    def __init__(self):
+        super().__init__(hero_sprite)
         self.image = self.hero_image
         self.rect = self.image.get_rect()
         self.rect.x = coords[1][1][0]
@@ -104,6 +115,7 @@ class Character(pygame.sprite.Sprite):
 
         if direction == "LEFT":
             try:
+                assert col - 1 >= 0
                 if (FIELD[row][col - 1]).type == "active":
                             (FIELD[row][col - 1]).activate()
                 elif (FIELD[row][col - 1]).type != "enemy":
@@ -144,6 +156,8 @@ class Character(pygame.sprite.Sprite):
                         FIELD[row][col] = None
             
             except IndexError:
+                pass
+            except AssertionError:
                 pass
             except AttributeError:
                 try:
@@ -199,6 +213,7 @@ class Character(pygame.sprite.Sprite):
 
         if direction == "UP":
             try:
+                assert row - 1 >= 0
                 if (FIELD[row - 1][col]).type == "active":
                             (FIELD[row - 1][col]).activate()
                 elif (FIELD[row - 1][col]).type != "enemy":
@@ -238,6 +253,8 @@ class Character(pygame.sprite.Sprite):
                         FIELD[row][col] = None
 
             except IndexError:
+                pass
+            except AssertionError:
                 pass
             except AttributeError:
                 try:
@@ -305,8 +322,8 @@ FIELD = [
 
 # класс пикапа-леченья (зелье).
 class Potion_Heal(pygame.sprite.Sprite):
-    def __init__(self, x, y, group):
-        super().__init__(group)
+    def __init__(self, x, y):
+        super().__init__(pickup_group)
         self.type = "pickup"
 
         heal_image = pygame.image.load(f"data/pickup/heal_potion.png")
@@ -326,8 +343,8 @@ class Potion_Heal(pygame.sprite.Sprite):
 
 # класс пикапа-монетки.
 class Coin(pygame.sprite.Sprite):
-    def __init__(self, x, y, group):
-        super().__init__(group)
+    def __init__(self, x, y):
+        super().__init__(pickup_group)
         self.type = "pickup"
 
         coin_image = pygame.image.load(f"data/pickup/gold.png")
@@ -348,12 +365,12 @@ class Coin(pygame.sprite.Sprite):
 
 # класс активного предмета сундук.
 class Chest(pygame.sprite.Sprite):
-    def __init__(self, x, y, group):
-        super().__init__(group)
+    def __init__(self, x, y):
+        super().__init__(activate_group)
         self.type = "active"
-        chest_image = pygame.image.load(f"data/activate/chest.png")
-        chest_image = pygame.transform.scale(chest_image, (150, 150))
-        self.image = chest_image
+        self.chest_image = pygame.image.load(f"data/activate/chest.png")
+        self.chest_image = pygame.transform.scale(self.chest_image, (150, 150))
+        self.image = self.chest_image
         self.rect = self.image.get_rect()
         self.rect.x = coords[y][x][0]
         self.rect.y = coords[y][x][1]
@@ -362,40 +379,20 @@ class Chest(pygame.sprite.Sprite):
     def activate(self):
         index = [item for sublist in FIELD for item in sublist].index(self)
         row, col = index // 3, index % 3
+        chest_image = pygame.transform.scale(self.chest_image, (160, 160))
+        chest_image = pygame.transform.scale(self.chest_image, (150, 150))
         self.kill()
         object = (["Coin", "Sword_Iron", "Sword_Diamond", "Potion_Heal"])[random.randint(0, 2)]
-        FIELD[row][col] = eval(f'{object}(col, row, pickup_group)')
+        FIELD[row][col] = eval(f'{object}(col, row)')
                 
 
 # класс пикапа-меча (железный).
 class Sword_Iron(pygame.sprite.Sprite):
-    def __init__(self, x, y, group):
-        super().__init__(group)
+    def __init__(self, x, y):
+        super().__init__(pickup_group)
         self.type = "pickup"
 
         weapon_image = pygame.image.load(f"data/pickup/iron_sword.png")
-        weapon_image = pygame.transform.scale(weapon_image, (150, 150))
-        self.image = weapon_image
-        self.rect = self.image.get_rect()
-        self.rect.x = coords[y][x][0]
-        self.rect.y = coords[y][x][1]
-
-    
-    def pick_up(self):
-        if hero.weapon + 3 > 15:
-            hero.weapon = 15
-        else:
-            hero.weapon += 3
-        self.kill()
-
-
-# класс пикапа-меча (алмазный).
-class Sword_Diamond(pygame.sprite.Sprite):
-    def __init__(self, x, y, group):
-        super().__init__(group)
-        self.type = "pickup"
-
-        weapon_image = pygame.image.load(f"data/pickup/diamond_sword.png")
         weapon_image = pygame.transform.scale(weapon_image, (150, 150))
         self.image = weapon_image
         self.rect = self.image.get_rect()
@@ -411,10 +408,32 @@ class Sword_Diamond(pygame.sprite.Sprite):
         self.kill()
 
 
+# класс пикапа-меча (алмазный).
+class Sword_Diamond(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(pickup_group)
+        self.type = "pickup"
+
+        weapon_image = pygame.image.load(f"data/pickup/diamond_sword.png")
+        weapon_image = pygame.transform.scale(weapon_image, (150, 150))
+        self.image = weapon_image
+        self.rect = self.image.get_rect()
+        self.rect.x = coords[y][x][0]
+        self.rect.y = coords[y][x][1]
+
+    
+    def pick_up(self):
+        if hero.weapon + 8 > 15:
+            hero.weapon = 15
+        else:
+            hero.weapon += 8
+        self.kill()
+
+
 # класс врага-зомби.
 class Zombie(pygame.sprite.Sprite):
-    def __init__(self, x, y, group):
-        super().__init__(group)
+    def __init__(self, x, y):
+        super().__init__(enemy_group)
         self.type = "enemy"
 
         zombie_image = pygame.image.load(f"data/enemy/zombie/6.png")
@@ -452,7 +471,7 @@ class Zombie(pygame.sprite.Sprite):
     
     def die(self, row, col):
         self.kill()
-        FIELD[row][col] = None
+        FIELD[row][col] = Coin(col, row)
     
     def show_health(self):
         zombie_image = pygame.image.load(f"data/enemy/zombie/{self.health}.png")
@@ -460,9 +479,10 @@ class Zombie(pygame.sprite.Sprite):
         self.image = zombie_image
 
 
+# класс врага зомби в шлеме.
 class Helmet_Zombie(pygame.sprite.Sprite):
-    def __init__(self, x, y, group):
-        super().__init__(group)
+    def __init__(self, x, y):
+        super().__init__(enemy_group)
         self.type = "enemy"
 
         zombie_image = pygame.image.load(f"data/enemy/helmet_zombie/7.png")
@@ -500,13 +520,14 @@ class Helmet_Zombie(pygame.sprite.Sprite):
     
     def die(self, row, col):
         self.kill()
-        FIELD[row][col] = None
+        FIELD[row][col] = Coin(col, row)
     
     def show_health(self):
         zombie_image = pygame.image.load(f"data/enemy/zombie/{self.health}.png")
         zombie_image = pygame.transform.scale(zombie_image, (150, 150))
         self.image = zombie_image
 
+objects = ["Coin", "Sword_Iron", "Sword_Diamond", "Potion_Heal", "Zombie", "Helmet_Zombie", "Chest"]
 
 #     ██╗██╗███╗   ██╗██╗████████╗██╗ █████╗ ██╗     ██╗███████╗ █████╗ ████████╗██╗ ██████╗ ███╗   ██╗
 #    ██╔╝██║████╗  ██║██║╚══██╔══╝██║██╔══██╗██║     ██║╚══███╔╝██╔══██╗╚══██╔══╝██║██╔═══██╗████╗  ██║
@@ -530,80 +551,69 @@ coin_indicator = Indicator_Coins(indicators_group)
 health_indicator = Indicator_Health(indicators_group)
 weapon_indicator = Indicator_Weapon(indicators_group)
 
+# создание пустых тайлов.
+tiles = pygame.sprite.Group()
+for row in range(len(FIELD)):
+    for col in range(len(FIELD[row])):
+        Blank_Tile(col, row)
+
 # создание героя.
 hero_sprite = pygame.sprite.Group()
-hero = Character(hero_sprite)
+hero = Character()
 FIELD[1][1] = hero
 
-# создание группы пикапов, группы врагов и группы активируемых предеметов..
+# создание групп спрайтов.
 pickup_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
 activate_group = pygame.sprite.Group()
 
-# создание пробных пикапов.
-x, y = 0, 2
-FIELD[x][y] = Coin(y, x, pickup_group)
-
-x, y = 1, 2
-FIELD[x][y] = Sword_Iron(y, x, pickup_group)
-
-x, y = 2, 0
-FIELD[x][y] = Sword_Diamond(y, x, pickup_group)
-
-x, y = 0, 1
-FIELD[x][y] = Potion_Heal(y, x, pickup_group)
-
-x, y = 2, 1
-FIELD[x][y] = Potion_Heal(y, x, pickup_group)
-
-# создание активируемого предмета.
-x, y = 1, 0
-FIELD[x][y] = Chest(y, x, activate_group)
-
-# создание пробных врагов.
-x, y = 0, 0
-FIELD[x][y] = Helmet_Zombie(y, x, pickup_group)
-
-x, y = 2, 2
-FIELD[x][y] = Zombie(y, x, pickup_group)
-
 # фиксирование кадров в секунду.
 clock = pygame.time.Clock()
-fps = 30
+fps = 15
 
 # запуск программы.
 running = True
 while running:
+    for row in range(len(FIELD)):
+        for col in range(len(FIELD[row])):
+            if FIELD[row][col] == None:
+                object = random.choice(objects)
+                FIELD[row][col] = eval(f'{object}(col, row)')
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
-            try:
-                if event.key == pygame.K_LEFT:
-                    hero.do("LEFT")
-                if event.key == pygame.K_RIGHT:
-                    hero.do("RIGHT")
-                if event.key == pygame.K_DOWN:
-                    hero.do("DOWN")
-                if event.key == pygame.K_UP:
-                    hero.do("UP")
-            except ValueError:
-                print("Вы погибли и не можете двигаться.", random.randint(1, 8))
+            if event.key == pygame.K_ESCAPE:
+                running = False
+            else:
+                try:
+                    if event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                        hero.do("LEFT")
+                    if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                        hero.do("RIGHT")
+                    if event.key == pygame.K_DOWN or event.key == pygame.K_s:
+                        hero.do("DOWN")
+                    if event.key == pygame.K_UP or event.key == pygame.K_w:
+                        hero.do("UP")
+                except ValueError:
+                    print("Вы погибли и не можете двигаться.", random.randint(1, 8))
 
     screen.fill((50, 50, 50))
+    
+    # прорисовка спрайтов.
+    tiles.draw(screen)
+    pickup_group.draw(screen)
+    enemy_group.draw(screen)
+    indicators_group.draw(screen)
+    activate_group.draw(screen)
+    hero_sprite.draw(screen)
 
     # отображение индикаторов.
     coin_indicator.show_up(hero.coins)
     health_indicator.show_up(hero.health)
     weapon_indicator.show_up(hero.weapon)
-
-    # прорисовка спрайтов.
-    hero_sprite.draw(screen)
-    pickup_group.draw(screen)
-    enemy_group.draw(screen)
-    indicators_group.draw(screen)
-    activate_group.draw(screen)
-
+    
     pygame.display.flip()
     clock.tick(fps)
 
