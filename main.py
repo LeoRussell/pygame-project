@@ -18,7 +18,7 @@ coords = [
         ]
 
 
-objects = ["Coin", "Sword_Iron", "Sword_Diamond", "Potion_Heal", "Zombie", "Helmet_Zombie", "Chest", "Diamond", "Tnt"]
+objects = ["Coin", "Sword_Iron", "Sword_Diamond", "Potion_Heal", "Zombie", "Helmet_Zombie", "Chest", "Diamond", "Tnt", "Creeper", "Endermite", "Enderman", "Bad_Chest"]
 
 
 def steps_check():
@@ -398,6 +398,8 @@ class Character(pygame.sprite.Sprite):
         if hero.weapon < 0:
             hero.weapon = 0
 
+        print(FIELD)
+
 
 # матрица ячеек поля.
 FIELD = [
@@ -487,6 +489,27 @@ class Chest(pygame.sprite.Sprite):
         FIELD[row][col] = eval(f'{object}(col, row)')
 
 
+# класс активного предмета "плохой" сундук.
+class Bad_Chest(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(activate_group)
+        self.type = "active"
+        self.bad_chest_image = pygame.image.load(f"data/activate/bad_chest.png")
+        self.bad_chest_image = pygame.transform.scale(self.bad_chest_image, (150, 150))
+        self.image = self.bad_chest_image
+        self.rect = self.image.get_rect()
+        self.rect.x = coords[y][x][0]
+        self.rect.y = coords[y][x][1]
+    
+
+    def activate(self):
+        index = [item for sublist in FIELD for item in sublist].index(self)
+        row, col = index // 3, index % 3
+        self.kill()
+        object = (["Tnt", "Zombie", "Endermite"])[random.randint(0, 2)]
+        FIELD[row][col] = eval(f'{object}(col, row)')
+
+
 # класс смещаемого предмета динамит.
 class Tnt(pygame.sprite.Sprite):
     def __init__(self, x, y, timer=6):
@@ -512,6 +535,8 @@ class Tnt(pygame.sprite.Sprite):
         else:
             index = [item for sublist in FIELD for item in sublist].index(self)
             row, col = index // 3, index % 3
+            self.kill()
+            FIELD[row][col] = None
 
             try:
                 if FIELD[row + 1][col].type != "hero":
@@ -569,8 +594,7 @@ class Tnt(pygame.sprite.Sprite):
             except IndexError:
                 pass 
 
-            self.kill()
-            FIELD[row][col] = None
+            
 
     
     def move(self, row, col):
@@ -621,6 +645,184 @@ class Sword_Diamond(pygame.sprite.Sprite):
         else:
             hero.weapon += 8
         self.kill()
+
+
+# класс врага эндермит.
+class Endermite(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(enemy_group)
+        self.type = "enemy"
+
+        endermite_image = pygame.image.load(f"data/enemy/endermite/2.png")
+        endermite_image = pygame.transform.scale(endermite_image, (150, 150))
+        self.image = endermite_image
+        self.rect = self.image.get_rect()
+        self.rect.x = coords[y][x][0]
+        self.rect.y = coords[y][x][1]
+
+        # статы эндермит.
+        self.health = 2
+    
+    def deal_damage(self, damage_dealt, weapon):
+        if weapon == True:
+            if self.health - damage_dealt <= 0:
+                index = [item for sublist in FIELD for item in sublist].index(self)
+                row, col = index // 3, index % 3
+                self.die(row, col)
+                hero.weapon = hero.weapon - self.health
+            else:
+                self.health -= damage_dealt
+                self.show_health()
+                hero.weapon = 0
+        else:
+            if self.health - damage_dealt <= 0:
+                index = [item for sublist in FIELD for item in sublist].index(self)
+                row, col = index // 3, index % 3
+                hero.health -= self.health
+                self.die(row, col)
+                
+            else:
+                self.health -= damage_dealt
+                self.show_health()
+                
+    
+    def die(self, row, col):
+        self.kill()
+        FIELD[row][col] = Coin(col, row)
+
+        row1, col1 = random.choice([(0, 0), (0, 2), (2, 0), (2, 2)])
+        index = [item for sublist in FIELD for item in sublist].index(hero)
+        x, y = index // 3, index % 3
+        if x != row1 and col1 != y:
+            FIELD[row1][col1].kill()
+            FIELD[row1][col1] = FIELD[x][y]
+            FIELD[x][y] = None
+            hero.rect.x = coords[row1][col1][0]
+            hero.rect.y = coords[row1][col1][1]
+    
+    def show_health(self):
+        endermite_image = pygame.image.load(f"data/enemy/endermite/{self.health}.png")
+        endermite_image = pygame.transform.scale(endermite_image, (150, 150))
+        self.image = endermite_image
+    
+    def special_ability(self):
+        pass
+
+
+# класс врага-эндермена(?).
+class Enderman(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(enemy_group)
+        self.type = "enemy"
+
+        enderman_image = pygame.image.load(f"data/enemy/enderman/4.png")
+        enderman_image = pygame.transform.scale(enderman_image, (150, 150))
+        self.image = enderman_image
+        self.rect = self.image.get_rect()
+        self.rect.x = coords[y][x][0]
+        self.rect.y = coords[y][x][1]
+
+        # статы эндермана.
+        self.health = 4
+    
+    def deal_damage(self, damage_dealt, weapon):
+        if weapon == True:
+            if self.health - damage_dealt <= 0:
+                index = [item for sublist in FIELD for item in sublist].index(self)
+                row, col = index // 3, index % 3
+                self.die(row, col)
+                hero.weapon = hero.weapon - self.health
+            else:
+                self.health -= damage_dealt
+                self.show_health()
+                hero.weapon = 0
+        else:
+            if self.health - damage_dealt <= 0:
+                index = [item for sublist in FIELD for item in sublist].index(self)
+                row, col = index // 3, index % 3
+                hero.health -= self.health
+                self.die(row, col)
+                
+            else:
+                self.health -= damage_dealt
+                self.show_health()
+                
+    
+    def die(self, row, col):
+        self.kill()
+        FIELD[row][col] = Coin(col, row)
+    
+    def show_health(self):
+        enderman_image = pygame.image.load(f"data/enemy/enderman/{self.health}.png")
+        enderman_image = pygame.transform.scale(enderman_image, (150, 150))
+        self.image = enderman_image
+    
+    def special_ability(self):
+        index = [item for sublist in FIELD for item in sublist].index(self)
+        row, col = index // 3, index % 3
+        row_to_set, col_to_set = random.randint(0, 2), random.randint(0, 2)
+        if FIELD[row_to_set][col_to_set].type != "hero":
+            A = FIELD[row_to_set][col_to_set]
+            FIELD[row_to_set][col_to_set] = FIELD[row][col]
+            FIELD[row][col] = A
+
+            FIELD[row][col].rect.x = coords[row][col][0]
+            FIELD[row][col].rect.y = coords[row][col][1]
+
+            self.rect.x = coords[row_to_set][col_to_set][0]
+            self.rect.y = coords[row_to_set][col_to_set][1]
+
+
+# класс врага-крипера(?).
+class Creeper(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(enemy_group)
+        self.type = "enemy"
+
+        creeper_image = pygame.image.load(f"data/enemy/creeper/4.png")
+        creeper_image = pygame.transform.scale(creeper_image, (150, 150))
+        self.image = creeper_image
+        self.rect = self.image.get_rect()
+        self.rect.x = coords[y][x][0]
+        self.rect.y = coords[y][x][1]
+
+        # статы крипера.
+        self.health = 4
+    
+    def deal_damage(self, damage_dealt, weapon):
+        if weapon == True:
+            if self.health - damage_dealt <= 0:
+                index = [item for sublist in FIELD for item in sublist].index(self)
+                row, col = index // 3, index % 3
+                self.die(row, col)
+                hero.weapon = hero.weapon - self.health
+            else:
+                self.health -= damage_dealt
+                self.show_health()
+                hero.weapon = 0
+        else:
+            if self.health - damage_dealt <= 0:
+                index = [item for sublist in FIELD for item in sublist].index(self)
+                row, col = index // 3, index % 3
+                hero.health -= self.health
+                self.die(row, col)
+                
+            else:
+                self.health -= damage_dealt
+                self.show_health()
+                
+    
+    def die(self, row, col):
+        self.kill()
+        FIELD[row][col] = Tnt(col, row, 3)
+    
+    def show_health(self):
+        creeper_image = pygame.image.load(f"data/enemy/creeper/{self.health}.png")
+        creeper_image = pygame.transform.scale(creeper_image, (150, 150))
+        self.image = creeper_image
+    
+    def special_ability(self):
+        pass
 
 
 # класс врага-зомби.
