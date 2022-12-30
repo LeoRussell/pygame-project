@@ -18,8 +18,9 @@ coords = [
         ]
 
 
-objects = ["Coin", "Sword_Iron", "Sword_Diamond", "Potion_Heal", "Zombie", "Helmet_Zombie", "Chest", "Diamond", "Tnt", "Creeper", "Endermite", "Enderman", "Bad_Chest"]
+objects = ["Coin", "Sword_Iron", "Sword_Diamond", "Potion_Heal", "Zombie", "Helmet_Zombie", "Chest", "Diamond", "Tnt", "Creeper", "Endermite", "Enderman", "Bad_Chest", "Skeleton"]
 
+statistic = [0, 0, 0]
 
 def steps_check():
     hero.steps += 1
@@ -30,6 +31,35 @@ def steps_check():
             except AttributeError:
                 pass
 
+
+class Start_Menu(pygame.sprite.Sprite):
+    def __init__(self, width=490, height=800):
+        super().__init__(menu_group)
+        self.type = "menu"
+
+        menu_image = pygame.image.load(f"data/menu/menu.png")
+        menu_image = pygame.transform.scale(menu_image, (490, 800))
+        self.image = menu_image
+        self.rect = self.image.get_rect()
+        self.rect.x = 0
+        self.rect.y = 0
+        self.on = True
+
+
+class Death_Menu(pygame.sprite.Sprite):
+    def __init__(self, width=490, height=800):
+        super().__init__(death_menu_group)
+        self.type = "menu"
+
+        death_menu_image = pygame.image.load(f"data/menu/death_menu.png")
+        death_menu_image = pygame.transform.scale(death_menu_image, (490, 800))
+        self.image = death_menu_image
+        self.rect = self.image.get_rect()
+        self.rect.x = 0
+        self.rect.y = 0
+        self.on = False
+
+
 # класс индикатора следующей клетки.
 class Next_Tile_Indicator(pygame.sprite.Sprite):
     def __init__(self, group):
@@ -37,16 +67,16 @@ class Next_Tile_Indicator(pygame.sprite.Sprite):
         self.type = "indicator"
 
         next_tile_image = pygame.image.load(f"data/tile.png")
-        next_tile_image = pygame.transform.scale(next_tile_image, (150, 150))
+        next_tile_image = pygame.transform.scale(next_tile_image, (90, 90))
         self.image = next_tile_image
         self.rect = self.image.get_rect()
-        self.rect.x = 130
-        self.rect.y = 650
+        self.rect.x = 65
+        self.rect.y = 665
 
 
     def show_up(self, object):
         object = eval(f"{object}(0, 0)")
-        image = pygame.transform.scale(object.image, (125, 125))
+        image = pygame.transform.scale(object.image, (90, 90))
         object.kill()
         self.image = image 
 
@@ -57,10 +87,10 @@ class Next_Tile_Indicator_Icon(pygame.sprite.Sprite):
         super().__init__(group)
         self.type = "indicator"
 
-        self.image = pygame.transform.scale(pygame.image.load(f"data/indicator/next_tile/next.png"), (150, 150))
+        self.image = pygame.transform.scale(pygame.image.load(f"data/indicator/next_tile/next.png"), (125, 125))
         self.rect = self.image.get_rect()
-        self.rect.x = 55
-        self.rect.y = 640
+        self.rect.x = 5
+        self.rect.y = 650
 
 
 # класс пустой клетки.
@@ -92,12 +122,36 @@ class Indicator_Coins(pygame.sprite.Sprite):
 
     
     def show_up(self, coins):
-        try:
-            coin_indicator_image = pygame.image.load(f"data/indicator/gold/{coins}.png")
-            coin_indicator_image = pygame.transform.scale(coin_indicator_image, (150, 150))
-            self.image = coin_indicator_image
-        except FileNotFoundError:
-            pass
+        if hero.coins > 99:
+            hero.coins = 99
+            coins = 99
+        coin_indicator_image = pygame.image.load(f"data/indicator/gold/{coins}.png")
+        coin_indicator_image = pygame.transform.scale(coin_indicator_image, (150, 150))
+        self.image = coin_indicator_image
+    
+
+
+# класс индикатора монеток.
+class Indicator_Kills(pygame.sprite.Sprite):
+    def __init__(self, group):
+        super().__init__(group)
+        self.type = "indicator"
+
+        kills_indicator_image = pygame.image.load(f"data/indicator/kill/0.png")
+        kills_indicator_image = pygame.transform.scale(kills_indicator_image, (160, 150))
+        self.image = kills_indicator_image
+        self.rect = self.image.get_rect()
+        self.rect.x = 330
+        self.rect.y = 640
+
+    
+    def show_up(self, kills):
+        if hero.enemies_killed > 99:
+            hero.enemies_killed = 99
+            kills = 99
+        kills_indicator_image = pygame.image.load(f"data/indicator/kill/{kills}.png")
+        kills_indicator_image = pygame.transform.scale(kills_indicator_image, (160, 150))
+        self.image = kills_indicator_image
 
 
 # класс индикатора шагов.
@@ -110,17 +164,17 @@ class Indicator_Steps(pygame.sprite.Sprite):
         steps_indicator_image = pygame.transform.scale(steps_indicator_image, (150, 150))
         self.image = steps_indicator_image
         self.rect = self.image.get_rect()
-        self.rect.x = 300
+        self.rect.x = 185
         self.rect.y = 640
 
     
     def show_up(self, steps):
-        try:
-            steps_indicator_image = pygame.image.load(f"data/indicator/step/{steps}.png")
-            steps_indicator_image = pygame.transform.scale(steps_indicator_image, (150, 150))
-            self.image = steps_indicator_image
-        except FileNotFoundError:
-            pass
+        if hero.steps > 99:
+            hero.steps = 99
+            steps = 99
+        steps_indicator_image = pygame.image.load(f"data/indicator/step/{steps}.png")
+        steps_indicator_image = pygame.transform.scale(steps_indicator_image, (150, 150))
+        self.image = steps_indicator_image
 
 
 # класс индикатора жизней.
@@ -165,13 +219,12 @@ class Indicator_Weapon(pygame.sprite.Sprite):
 
 # класс персонажа (игрока).
 class Character(pygame.sprite.Sprite):
-    hero_image = pygame.image.load("data/character/steve.png")
-    hero_image = pygame.transform.scale(hero_image, (150, 150))
-
-
     def __init__(self):
         super().__init__(hero_sprite)
         self.type = "hero"
+
+        self.hero_image = pygame.image.load("data/character/steve.png")
+        self.hero_image = pygame.transform.scale(self.hero_image, (150, 150))
         self.image = self.hero_image
         self.rect = self.image.get_rect()
         self.rect.x = coords[1][1][0]
@@ -182,8 +235,11 @@ class Character(pygame.sprite.Sprite):
         self.health = 6
         self.weapon = 3
         self.steps = 0
-    
+        self.enemies_killed = 0
+
     def do(self, direction):
+        global statistic
+        statistic = [self.coins, self.enemies_killed, self.steps]
         index = [item for sublist in FIELD for item in sublist].index(hero)
         row, col = index // 3, index % 3
 
@@ -398,7 +454,11 @@ class Character(pygame.sprite.Sprite):
         if hero.weapon < 0:
             hero.weapon = 0
 
-        print(FIELD)
+        
+    def change(self, character):
+        self.hero_image = pygame.image.load(f"data/character/{character}.png")
+        self.hero_image = pygame.transform.scale(self.hero_image, (150, 150))
+        self.image = self.hero_image
 
 
 # матрица ячеек поля.
@@ -506,13 +566,13 @@ class Bad_Chest(pygame.sprite.Sprite):
         index = [item for sublist in FIELD for item in sublist].index(self)
         row, col = index // 3, index % 3
         self.kill()
-        object = (["Tnt", "Zombie", "Endermite"])[random.randint(0, 2)]
+        object = (["Tnt", "Endermite", "Skeleton"])[random.randint(0, 2)]
         FIELD[row][col] = eval(f'{object}(col, row)')
 
 
 # класс смещаемого предмета динамит.
 class Tnt(pygame.sprite.Sprite):
-    def __init__(self, x, y, timer=6):
+    def __init__(self, x, y, timer=7):
         super().__init__(movable_group)
         self.type = "movable"
 
@@ -523,7 +583,6 @@ class Tnt(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = coords[y][x][0]
         self.rect.y = coords[y][x][1]
-        
     
 
     def special_ability(self):
@@ -553,6 +612,7 @@ class Tnt(pygame.sprite.Sprite):
                 pass 
             
             try:
+                assert row - 1 >= 0
                 if FIELD[row - 1][col].type != "hero":
                     FIELD[row - 1][col].kill()
                     FIELD[row - 1][col] = None
@@ -565,8 +625,11 @@ class Tnt(pygame.sprite.Sprite):
                         FIELD[row - 1][col].health -= 5
             except IndexError:
                 pass 
+            except AssertionError:
+                pass
 
             try:
+                assert col - 1 >= 0
                 if FIELD[row][col - 1].type != "hero":
                     FIELD[row][col - 1].kill()
                     FIELD[row][col - 1] = None
@@ -578,7 +641,9 @@ class Tnt(pygame.sprite.Sprite):
                     else:
                         FIELD[row][col - 1].health -= 5
             except IndexError:
-                pass 
+                pass
+            except AssertionError:
+                pass
             
             try:
                 if FIELD[row][col + 1].type != "hero":
@@ -689,6 +754,7 @@ class Endermite(pygame.sprite.Sprite):
     def die(self, row, col):
         self.kill()
         FIELD[row][col] = Coin(col, row)
+        hero.enemies_killed += 1
 
         row1, col1 = random.choice([(0, 0), (0, 2), (2, 0), (2, 2)])
         index = [item for sublist in FIELD for item in sublist].index(hero)
@@ -707,6 +773,56 @@ class Endermite(pygame.sprite.Sprite):
     
     def special_ability(self):
         pass
+
+
+# класс врага эндермит.
+class Skeleton(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(enemy_group)
+        self.type = "enemy"
+
+        skeleton_image = pygame.image.load(f"data/enemy/skeleton/4.png")
+        skeleton_image = pygame.transform.scale(skeleton_image, (150, 150))
+        self.image = skeleton_image
+        self.rect = self.image.get_rect()
+        self.rect.x = coords[y][x][0]
+        self.rect.y = coords[y][x][1]
+
+        # статы эндермит.
+        self.health = 4
+    
+    def deal_damage(self, damage_dealt, weapon):
+        if weapon == True:
+            if self.health - damage_dealt <= 0:
+                index = [item for sublist in FIELD for item in sublist].index(self)
+                row, col = index // 3, index % 3
+                self.die(row, col)
+                hero.weapon = hero.weapon - self.health
+            else:
+                self.health -= damage_dealt
+                self.show_health()
+                hero.weapon = 0
+        else:
+            if self.health - damage_dealt <= 0:
+                index = [item for sublist in FIELD for item in sublist].index(self)
+                row, col = index // 3, index % 3
+                hero.health -= self.health
+                self.die(row, col)
+                
+            else:
+                self.health -= damage_dealt
+                self.show_health()
+                
+    
+    def die(self, row, col):
+        self.kill()
+        FIELD[row][col] = Coin(col, row)
+        hero.enemies_killed += 1
+    
+    def show_health(self):
+        skeleton_image = pygame.image.load(f"data/enemy/skeleton/{self.health}.png")
+        skeleton_image = pygame.transform.scale(skeleton_image, (150, 150))
+        self.image = skeleton_image
 
 
 # класс врага-эндермена(?).
@@ -751,6 +867,7 @@ class Enderman(pygame.sprite.Sprite):
     def die(self, row, col):
         self.kill()
         FIELD[row][col] = Coin(col, row)
+        hero.enemies_killed += 1
     
     def show_health(self):
         enderman_image = pygame.image.load(f"data/enemy/enderman/{self.health}.png")
@@ -814,7 +931,8 @@ class Creeper(pygame.sprite.Sprite):
     
     def die(self, row, col):
         self.kill()
-        FIELD[row][col] = Tnt(col, row, 3)
+        FIELD[row][col] = Tnt(col, row, 4)
+        hero.enemies_killed += 1
     
     def show_health(self):
         creeper_image = pygame.image.load(f"data/enemy/creeper/{self.health}.png")
@@ -867,7 +985,8 @@ class Zombie(pygame.sprite.Sprite):
     def die(self, row, col):
         self.kill()
         FIELD[row][col] = Coin(col, row)
-    
+        hero.enemies_killed += 1
+
     def show_health(self):
         zombie_image = pygame.image.load(f"data/enemy/zombie/{self.health}.png")
         zombie_image = pygame.transform.scale(zombie_image, (150, 150))
@@ -919,6 +1038,7 @@ class Helmet_Zombie(pygame.sprite.Sprite):
     def die(self, row, col):
         self.kill()
         FIELD[row][col] = Coin(col, row)
+        hero.enemies_killed += 1
     
     def show_health(self):
         zombie_image = pygame.image.load(f"data/enemy/zombie/{self.health}.png")
@@ -945,6 +1065,21 @@ pygame.display.set_caption('Игра?')
 size = width, height = 490, 800
 screen = pygame.display.set_mode(size)
 
+# создание меню.
+menu_group = pygame.sprite.Group()
+menu = Start_Menu()
+death_menu_group = pygame.sprite.Group()
+death_menu = Death_Menu()
+indicator1 = Indicator_Coins(death_menu_group)
+indicator1.rect.x = 20
+indicator1.rect.y = 350
+indicator2 = Indicator_Kills(death_menu_group)
+indicator2.rect.x = 185
+indicator2.rect.y = 350
+indicator3 = Indicator_Steps(death_menu_group)
+indicator3.rect.x = 350
+indicator3.rect.y = 350
+
 # создание индикаторов.
 indicators_group = pygame.sprite.Group()
 coin_indicator = Indicator_Coins(indicators_group)
@@ -952,6 +1087,7 @@ health_indicator = Indicator_Health(indicators_group)
 weapon_indicator = Indicator_Weapon(indicators_group)
 next_tile_indicator = Next_Tile_Indicator(indicators_group)
 next_tile_indicator_icon = Next_Tile_Indicator_Icon(indicators_group)
+kills_indicator = Indicator_Kills(indicators_group)
 steps_indicator = Indicator_Steps(indicators_group)
 
 # создание пустых тайлов.
@@ -979,39 +1115,8 @@ object = random.choice(objects)
 # запуск программы.
 running = True
 while running:
-    for row in range(len(FIELD)):
-        for col in range(len(FIELD[row])):
-            if FIELD[row][col] == None:
-                FIELD[row][col] = eval(f'{object}(col, row)')
-                object = random.choice(objects)
-                next_tile_indicator.show_up(object)
-
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                running = False
-            else:
-                try:
-                    if event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                        hero.do("LEFT")
-                        steps_check()
-                    if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                        hero.do("RIGHT")
-                        steps_check()
-                    if event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                        hero.do("DOWN")
-                        steps_check()
-                    if event.key == pygame.K_UP or event.key == pygame.K_w:
-                        hero.do("UP")
-                        steps_check()
-
-                except ValueError:
-                    print("Вы погибли и не можете двигаться.", random.randint(1, 8))
-
     screen.fill((50, 50, 50))
-    
+        
     # прорисовка спрайтов.
     tiles.draw(screen)
     pickup_group.draw(screen)
@@ -1026,6 +1131,82 @@ while running:
     health_indicator.show_up(hero.health)
     weapon_indicator.show_up(hero.weapon)
     steps_indicator.show_up(hero.steps)
+    kills_indicator.show_up(hero.enemies_killed)
+
+
+    if menu.on == True:
+        menu_group.draw(screen)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    menu.on = False
+                else:
+                    if event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                        hero.change("alex")
+                        menu.on = False
+                    if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                        hero.change("steve")
+                        menu.on = False
+    
+    elif death_menu.on == True:
+        indicator1.show_up(statistic[0]) 
+        indicator2.show_up(statistic[1])
+        indicator3.show_up(statistic[-1])
+        death_menu_group.draw(screen)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
+                else:
+                    if event.key == pygame.K_SPACE:
+                        death_menu.on = False
+                        menu.on = True
+                        for row in range(len(FIELD)):
+                            for col in range(len(FIELD[row])):
+                                FIELD[row][col].kill()
+                                FIELD[row][col] = eval(f'{object}(col, row)')
+                                object = random.choice(objects)
+                        FIELD[1][1].kill()
+                        hero = Character()
+                        FIELD[1][1] = hero
+
+                        
+
+    else:
+        for row in range(len(FIELD)):
+            for col in range(len(FIELD[row])):
+                if FIELD[row][col] == None:
+                    FIELD[row][col] = eval(f'{object}(col, row)')
+                    object = random.choice(objects)
+                    next_tile_indicator.show_up(object)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    menu.on = True
+                else:
+                    try:
+                        if event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                            hero.do("LEFT")
+                            steps_check()
+                        if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                            hero.do("RIGHT")
+                            steps_check()
+                        if event.key == pygame.K_DOWN or event.key == pygame.K_s:
+                            hero.do("DOWN")
+                            steps_check()
+                        if event.key == pygame.K_UP or event.key == pygame.K_w:
+                            hero.do("UP")
+                            steps_check()
+
+                    except ValueError:
+                        death_menu.on = True
     
     pygame.display.flip()
     clock.tick(fps)
