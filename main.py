@@ -18,6 +18,18 @@ coords = [
         ]
 
 
+objects = ["Coin", "Sword_Iron", "Sword_Diamond", "Potion_Heal", "Zombie", "Helmet_Zombie", "Chest", "Diamond", "Tnt"]
+
+
+def steps_check():
+    hero.steps += 1
+    for row in range(len(FIELD)):
+        for col in range(len(FIELD[row])):
+            try:
+                FIELD[row][col].special_ability()
+            except AttributeError:
+                pass
+
 # класс индикатора следующей клетки.
 class Next_Tile_Indicator(pygame.sprite.Sprite):
     def __init__(self, group):
@@ -153,12 +165,13 @@ class Indicator_Weapon(pygame.sprite.Sprite):
 
 # класс персонажа (игрока).
 class Character(pygame.sprite.Sprite):
-    hero_image = pygame.image.load("data/character/alex.png")
+    hero_image = pygame.image.load("data/character/steve.png")
     hero_image = pygame.transform.scale(hero_image, (150, 150))
 
 
     def __init__(self):
         super().__init__(hero_sprite)
+        self.type = "hero"
         self.image = self.hero_image
         self.rect = self.image.get_rect()
         self.rect.x = coords[1][1][0]
@@ -176,20 +189,24 @@ class Character(pygame.sprite.Sprite):
 
 
         if direction == "LEFT":
+            
             try:
                 assert col - 1 >= 0
                 if (FIELD[row][col - 1]).type == "active":
-                            (FIELD[row][col - 1]).activate()
-                elif (FIELD[row][col - 1]).type != "enemy":
+                    (FIELD[row][col - 1]).activate()
+                elif (FIELD[row][col - 1]).type == "movable":
+                    hero_reserve = FIELD[row][col]
+                    (FIELD[row][col - 1]).move(row, col)
+                    FIELD[row][col - 1] = hero_reserve
+                    hero.rect.x = coords[row][col - 1][0]
+                    
+                elif (FIELD[row][col - 1]).type == "pickup":
                     try:
-                        assert col - 1 >= 0
-                        if (FIELD[row][col - 1]).type == "pickup":
-                            (FIELD[row][col - 1]).pick_up()
+                        (FIELD[row][col - 1]).pick_up()
+
                     except AttributeError:
                         pass
                     except IndexError:
-                        pass
-                    except AssertionError:
                         pass
 
                     try:
@@ -202,7 +219,7 @@ class Character(pygame.sprite.Sprite):
                         pass
                     except AssertionError:
                         pass
-                else:
+                elif (FIELD[row][col - 1]).type == "enemy":
                     if self.weapon > 0:
                         FIELD[row][col - 1].deal_damage(self.weapon, True)
                     elif self.health > FIELD[row][col - 1].health:
@@ -235,10 +252,14 @@ class Character(pygame.sprite.Sprite):
             try:
                 if (FIELD[row][col + 1]).type == "active":
                             (FIELD[row][col + 1]).activate()
-                elif (FIELD[row][col + 1]).type != "enemy":
+                elif (FIELD[row][col + 1]).type == "movable":
+                    hero_reserve = FIELD[row][col]
+                    (FIELD[row][col + 1]).move(row, col)
+                    FIELD[row][col + 1] = hero_reserve
+                    hero.rect.x = coords[row][col + 1][0]
+                elif (FIELD[row][col + 1]).type == "pickup":
                     try:
-                        if (FIELD[row][col + 1]).type == "pickup":
-                            (FIELD[row][col + 1]).pick_up()
+                        (FIELD[row][col + 1]).pick_up()
                     except AttributeError:
                         pass
                     except IndexError:
@@ -250,7 +271,7 @@ class Character(pygame.sprite.Sprite):
                         hero.rect.x = coords[row][col + 1][0]
                     except IndexError:
                         pass
-                else:
+                elif (FIELD[row][col + 1]).type == "enemy":
                     if self.weapon > 0:
                         FIELD[row][col + 1].deal_damage(self.weapon, True)
                     elif self.health > FIELD[row][col + 1].health:
@@ -278,16 +299,17 @@ class Character(pygame.sprite.Sprite):
                 assert row - 1 >= 0
                 if (FIELD[row - 1][col]).type == "active":
                             (FIELD[row - 1][col]).activate()
-                elif (FIELD[row - 1][col]).type != "enemy":
+                elif (FIELD[row - 1][col]).type == "movable":
+                    hero_reserve = FIELD[row][col]
+                    (FIELD[row - 1][col]).move(row, col)
+                    FIELD[row - 1][col] = hero_reserve
+                    hero.rect.y = coords[row - 1][col][1]
+                elif (FIELD[row - 1][col]).type == "pickup":
                     try:
-                        assert row - 1 >= 0
-                        if (FIELD[row - 1][col]).type == "pickup":
-                            (FIELD[row - 1][col]).pick_up()
+                        (FIELD[row - 1][col]).pick_up()
                     except AttributeError:
                         pass
                     except IndexError:
-                        pass
-                    except AssertionError:
                         pass
 
                     try:
@@ -299,7 +321,7 @@ class Character(pygame.sprite.Sprite):
                         pass
                     except AssertionError:
                         pass
-                else:
+                elif (FIELD[row - 1][col]).type == "enemy":
                     if self.weapon > 0:
                         FIELD[row - 1][col].deal_damage(self.weapon, True)
                     elif self.health > FIELD[row - 1][col].health:
@@ -332,11 +354,14 @@ class Character(pygame.sprite.Sprite):
             try:
                 if (FIELD[row + 1][col]).type == "active":
                             (FIELD[row + 1][col]).activate()
-                elif (FIELD[row + 1][col]).type != "enemy":
+                elif (FIELD[row + 1][col]).type == "movable":
+                    hero_reserve = FIELD[row][col]
+                    (FIELD[row + 1][col]).move(row, col)
+                    FIELD[row + 1][col] = hero_reserve
+                    hero.rect.y = coords[row + 1][col][1]
+                elif (FIELD[row + 1][col]).type == "pickup":
                     try:
-                        if (FIELD[row + 1][col]).type == "pickup":
-                            (FIELD[row + 1][col]).pick_up()
-                        
+                        (FIELD[row + 1][col]).pick_up()
                     except AttributeError:
                         pass
                     except IndexError:
@@ -348,7 +373,7 @@ class Character(pygame.sprite.Sprite):
                         hero.rect.y = coords[row + 1][col][1]
                     except IndexError:
                         pass
-                else:
+                elif (FIELD[row + 1][col]).type == "enemy":
                     if self.weapon > 0:
                         FIELD[row + 1][col].deal_damage(self.weapon, True)
                     elif self.health > FIELD[row + 1][col].health:
@@ -418,10 +443,26 @@ class Coin(pygame.sprite.Sprite):
 
     
     def pick_up(self):
-        if hero.coins + 1 > 99:
-            hero.coins == 99
-        else:
-            hero.coins += 1
+        hero.coins += 1
+        self.kill()
+
+
+# класс пикапа-алмаза.
+class Diamond(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(pickup_group)
+        self.type = "pickup"
+
+        diamond_image = pygame.image.load(f"data/pickup/diamond.png")
+        diamond_image = pygame.transform.scale(diamond_image, (150, 150))
+        self.image = diamond_image
+        self.rect = self.image.get_rect()
+        self.rect.x = coords[y][x][0]
+        self.rect.y = coords[y][x][1]
+
+    
+    def pick_up(self):
+        hero.coins += 3
         self.kill()
 
 
@@ -442,9 +483,101 @@ class Chest(pygame.sprite.Sprite):
         index = [item for sublist in FIELD for item in sublist].index(self)
         row, col = index // 3, index % 3
         self.kill()
-        object = (["Coin", "Sword_Iron", "Sword_Diamond", "Potion_Heal"])[random.randint(0, 2)]
+        object = (["Coin", "Sword_Iron", "Sword_Diamond", "Potion_Heal", "Diamond"])[random.randint(0, 2)]
         FIELD[row][col] = eval(f'{object}(col, row)')
-                
+
+
+# класс смещаемого предмета динамит.
+class Tnt(pygame.sprite.Sprite):
+    def __init__(self, x, y, timer=6):
+        super().__init__(movable_group)
+        self.type = "movable"
+
+        self.timer = timer
+        self.tnt_image = pygame.image.load(f"data/movable/tnt/{self.timer}.png")
+        self.tnt_image = pygame.transform.scale(self.tnt_image, (150, 150))
+        self.image = self.tnt_image
+        self.rect = self.image.get_rect()
+        self.rect.x = coords[y][x][0]
+        self.rect.y = coords[y][x][1]
+        
+    
+
+    def special_ability(self):
+        if self.timer > 1:
+            self.timer -= 1
+            self.tnt_image = pygame.image.load(f"data/movable/tnt/{self.timer}.png")
+            self.tnt_image = pygame.transform.scale(self.tnt_image, (150, 150))
+            self.image = self.tnt_image
+        else:
+            index = [item for sublist in FIELD for item in sublist].index(self)
+            row, col = index // 3, index % 3
+
+            try:
+                if FIELD[row + 1][col].type != "hero":
+                    FIELD[row + 1][col].kill()
+                    FIELD[row + 1][col] = None
+                else:
+                    if FIELD[row + 1][col].health - 5 <= 0:
+                        FIELD[row + 1][col].health = 0
+                        FIELD[row + 1][col].kill()
+                        FIELD[row + 1][col] = None
+                    else:
+                        FIELD[row + 1][col].health -= 5
+            except IndexError:
+                pass 
+            
+            try:
+                if FIELD[row - 1][col].type != "hero":
+                    FIELD[row - 1][col].kill()
+                    FIELD[row - 1][col] = None
+                else:
+                    if FIELD[row - 1][col].health - 5 <= 0:
+                        FIELD[row - 1][col].health = 0
+                        FIELD[row - 1][col].kill()
+                        FIELD[row - 1][col] = None
+                    else:
+                        FIELD[row - 1][col].health -= 5
+            except IndexError:
+                pass 
+
+            try:
+                if FIELD[row][col - 1].type != "hero":
+                    FIELD[row][col - 1].kill()
+                    FIELD[row][col - 1] = None
+                else:
+                    if FIELD[row][col - 1].health - 5 <= 0:
+                        FIELD[row][col - 1].health = 0
+                        FIELD[row][col - 1].kill()
+                        FIELD[row][col - 1] = None
+                    else:
+                        FIELD[row][col - 1].health -= 5
+            except IndexError:
+                pass 
+            
+            try:
+                if FIELD[row][col + 1].type != "hero":
+                    FIELD[row][col + 1].kill()
+                    FIELD[row][col + 1] = None
+                else:
+                    if FIELD[row][col + 1].health - 5 <= 0:
+                        FIELD[row][col + 1].health = 0
+                        FIELD[row][col + 1].kill()
+                        FIELD[row][col + 1] = None
+                    else:
+                        FIELD[row][col + 1].health -= 5
+            except IndexError:
+                pass 
+
+            self.kill()
+            FIELD[row][col] = None
+
+    
+    def move(self, row, col):
+        FIELD[row][col] = self
+        self.rect.x = coords[row][col][0]
+        self.rect.y = coords[row][col][1]
+
 
 # класс пикапа-меча (железный).
 class Sword_Iron(pygame.sprite.Sprite):
@@ -537,6 +670,9 @@ class Zombie(pygame.sprite.Sprite):
         zombie_image = pygame.image.load(f"data/enemy/zombie/{self.health}.png")
         zombie_image = pygame.transform.scale(zombie_image, (150, 150))
         self.image = zombie_image
+    
+    def special_ability(self):
+        pass
 
 
 # класс врага зомби в шлеме.
@@ -586,8 +722,10 @@ class Helmet_Zombie(pygame.sprite.Sprite):
         zombie_image = pygame.image.load(f"data/enemy/zombie/{self.health}.png")
         zombie_image = pygame.transform.scale(zombie_image, (150, 150))
         self.image = zombie_image
+    
+    def special_ability(self):
+        pass
 
-objects = ["Coin", "Sword_Iron", "Sword_Diamond", "Potion_Heal", "Zombie", "Helmet_Zombie", "Chest"]
 
 #     ██╗██╗███╗   ██╗██╗████████╗██╗ █████╗ ██╗     ██╗███████╗ █████╗ ████████╗██╗ ██████╗ ███╗   ██╗
 #    ██╔╝██║████╗  ██║██║╚══██╔══╝██║██╔══██╗██║     ██║╚══███╔╝██╔══██╗╚══██╔══╝██║██╔═══██╗████╗  ██║
@@ -629,6 +767,7 @@ FIELD[1][1] = hero
 pickup_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
 activate_group = pygame.sprite.Group()
+movable_group = pygame.sprite.Group()
 
 # фиксирование кадров в секунду.
 clock = pygame.time.Clock()
@@ -655,14 +794,17 @@ while running:
                 try:
                     if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                         hero.do("LEFT")
+                        steps_check()
                     if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                         hero.do("RIGHT")
+                        steps_check()
                     if event.key == pygame.K_DOWN or event.key == pygame.K_s:
                         hero.do("DOWN")
+                        steps_check()
                     if event.key == pygame.K_UP or event.key == pygame.K_w:
                         hero.do("UP")
+                        steps_check()
 
-                    hero.steps += 1
                 except ValueError:
                     print("Вы погибли и не можете двигаться.", random.randint(1, 8))
 
@@ -672,6 +814,7 @@ while running:
     tiles.draw(screen)
     pickup_group.draw(screen)
     enemy_group.draw(screen)
+    movable_group.draw(screen)
     indicators_group.draw(screen)
     activate_group.draw(screen)
     hero_sprite.draw(screen)
