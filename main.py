@@ -2,12 +2,12 @@ import pygame
 import random
 
 
-#     ██╗███████╗████████╗██████╗ ██╗   ██╗ ██████╗████████╗██╗   ██╗██████╗ ███████╗
-#    ██╔╝██╔════╝╚══██╔══╝██╔══██╗██║   ██║██╔════╝╚══██╔══╝██║   ██║██╔══██╗██╔════╝
-#   ██╔╝ ███████╗   ██║   ██████╔╝██║   ██║██║        ██║   ██║   ██║██████╔╝█████╗  
-#  ██╔╝  ╚════██║   ██║   ██╔══██╗██║   ██║██║        ██║   ██║   ██║██╔══██╗██╔══╝  
-# ██╔╝   ███████║   ██║   ██║  ██║╚██████╔╝╚██████╗   ██║   ╚██████╔╝██║  ██║███████╗
-# ╚═╝    ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝  ╚═════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚══════╝                                                                           
+#  ██████╗ ██████╗ ██████╗ ███████╗
+# ██╔════╝██╔═══██╗██╔══██╗██╔════╝
+# ██║     ██║   ██║██████╔╝█████╗  
+# ██║     ██║   ██║██╔══██╗██╔══╝  
+# ╚██████╗╚██████╔╝██║  ██║███████╗
+#  ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝                                                                    
 
 
 # координаты ячеек поля.
@@ -17,21 +17,33 @@ coords = [
         [(10, 480), (170, 480), (330, 480)]
         ]
 
+# матрица ячеек поля.
+FIELD = [
+            [None, None, None],
+            [None, None, None],
+            [None, None, None]
+            ]
 
-objects = ["Coin", "Sword_Iron", "Sword_Diamond", "Potion_Heal", "Zombie", "Helmet_Zombie", "Chest", "Diamond", "Tnt", "Creeper", "Endermite", "Enderman", "Bad_Chest", "Skeleton"]
+# список всех возможных объектов на карте.
+objects = ["Coin", "Sword_Iron", "Sword_Diamond", "Potion_Heal", "Zombie", "Helmet_Zombie", "Chest", "Diamond", "Tnt", "Creeper", "Endermite", "Enderman", "Bad_Chest", "Skeleton", "Golem"]
 
+
+# статистика.
 statistic = [0, 0, 0]
 
+
+# проверка шагов и связанных с ней событий.
 def steps_check():
     hero.steps += 1
     for row in range(len(FIELD)):
-        for col in range(len(FIELD[row])):
+        for col in range(len(FIELD[row])): 
             try:
                 FIELD[row][col].special_ability()
             except AttributeError:
                 pass
 
 
+# класс стартового меню.
 class Start_Menu(pygame.sprite.Sprite):
     def __init__(self, width=490, height=800):
         super().__init__(menu_group)
@@ -46,6 +58,7 @@ class Start_Menu(pygame.sprite.Sprite):
         self.on = True
 
 
+# класс меню смерти.
 class Death_Menu(pygame.sprite.Sprite):
     def __init__(self, width=490, height=800):
         super().__init__(death_menu_group)
@@ -58,6 +71,28 @@ class Death_Menu(pygame.sprite.Sprite):
         self.rect.x = 0
         self.rect.y = 0
         self.on = False
+
+
+# класс пустой клетки.
+class Blank_Tile(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(tiles)
+        self.type = "tile"
+
+        tile_image = pygame.image.load(f"data/tile.png")
+        tile_image = pygame.transform.scale(tile_image, (150, 150))
+        self.image = tile_image
+        self.rect = self.image.get_rect()
+        self.rect.x = coords[y][x][0]
+        self.rect.y = coords[y][x][1]
+
+
+#     ██╗██╗███╗   ██╗██████╗ ██╗ ██████╗ █████╗ ████████╗ ██████╗ ██████╗ ███████╗
+#    ██╔╝██║████╗  ██║██╔══██╗██║██╔════╝██╔══██╗╚══██╔══╝██╔═══██╗██╔══██╗██╔════╝
+#   ██╔╝ ██║██╔██╗ ██║██║  ██║██║██║     ███████║   ██║   ██║   ██║██████╔╝███████╗
+#  ██╔╝  ██║██║╚██╗██║██║  ██║██║██║     ██╔══██║   ██║   ██║   ██║██╔══██╗╚════██║
+# ██╔╝   ██║██║ ╚████║██████╔╝██║╚██████╗██║  ██║   ██║   ╚██████╔╝██║  ██║███████║
+# ╚═╝    ╚═╝╚═╝  ╚═══╝╚═════╝ ╚═╝ ╚═════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚══════╝
 
 
 # класс индикатора следующей клетки.
@@ -93,20 +128,6 @@ class Next_Tile_Indicator_Icon(pygame.sprite.Sprite):
         self.rect.y = 650
 
 
-# класс пустой клетки.
-class Blank_Tile(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        super().__init__(tiles)
-        self.type = "tile"
-
-        tile_image = pygame.image.load(f"data/tile.png")
-        tile_image = pygame.transform.scale(tile_image, (150, 150))
-        self.image = tile_image
-        self.rect = self.image.get_rect()
-        self.rect.x = coords[y][x][0]
-        self.rect.y = coords[y][x][1]
-
-
 # класс индикатора монеток.
 class Indicator_Coins(pygame.sprite.Sprite):
     def __init__(self, group):
@@ -131,7 +152,7 @@ class Indicator_Coins(pygame.sprite.Sprite):
     
 
 
-# класс индикатора монеток.
+# класс индикатора убийств.
 class Indicator_Kills(pygame.sprite.Sprite):
     def __init__(self, group):
         super().__init__(group)
@@ -216,7 +237,13 @@ class Indicator_Weapon(pygame.sprite.Sprite):
         weapon_indicator_image = pygame.transform.scale(weapon_indicator_image, (150, 150))
         self.image = weapon_indicator_image
 
-
+#     ██╗██╗  ██╗███████╗██████╗  ██████╗ 
+#    ██╔╝██║  ██║██╔════╝██╔══██╗██╔═══██╗
+#   ██╔╝ ███████║█████╗  ██████╔╝██║   ██║
+#  ██╔╝  ██╔══██║██╔══╝  ██╔══██╗██║   ██║
+# ██╔╝   ██║  ██║███████╗██║  ██║╚██████╔╝
+# ╚═╝    ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝ 
+                                        
 # класс персонажа (игрока).
 class Character(pygame.sprite.Sprite):
     def __init__(self):
@@ -230,7 +257,6 @@ class Character(pygame.sprite.Sprite):
         self.rect.x = coords[1][1][0]
         self.rect.y = coords[1][1][1]
         
-        # статы героя.
         self.coins = 0
         self.health = 6
         self.weapon = 3
@@ -461,71 +487,12 @@ class Character(pygame.sprite.Sprite):
         self.image = self.hero_image
 
 
-# матрица ячеек поля.
-FIELD = [
-            [None, None, None],
-            [None, None, None],
-            [None, None, None]
-            ]
-
-
-# класс пикапа-леченья (зелье).
-class Potion_Heal(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        super().__init__(pickup_group)
-        self.type = "pickup"
-
-        heal_image = pygame.image.load(f"data/pickup/heal_potion.png")
-        heal_image = pygame.transform.scale(heal_image, (150, 150))
-        self.image = heal_image
-        self.rect = self.image.get_rect()
-        self.rect.x = coords[y][x][0]
-        self.rect.y = coords[y][x][1]
-
-    
-    def pick_up(self):
-        if hero.health + 3 > 10:
-            hero.health = 10
-        else:
-            hero.health += 3
-        self.kill()
-
-# класс пикапа-монетки.
-class Coin(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        super().__init__(pickup_group)
-        self.type = "pickup"
-
-        coin_image = pygame.image.load(f"data/pickup/gold.png")
-        coin_image = pygame.transform.scale(coin_image, (150, 150))
-        self.image = coin_image
-        self.rect = self.image.get_rect()
-        self.rect.x = coords[y][x][0]
-        self.rect.y = coords[y][x][1]
-
-    
-    def pick_up(self):
-        hero.coins += 1
-        self.kill()
-
-
-# класс пикапа-алмаза.
-class Diamond(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        super().__init__(pickup_group)
-        self.type = "pickup"
-
-        diamond_image = pygame.image.load(f"data/pickup/diamond.png")
-        diamond_image = pygame.transform.scale(diamond_image, (150, 150))
-        self.image = diamond_image
-        self.rect = self.image.get_rect()
-        self.rect.x = coords[y][x][0]
-        self.rect.y = coords[y][x][1]
-
-    
-    def pick_up(self):
-        hero.coins += 3
-        self.kill()
+#     ██╗ █████╗  ██████╗████████╗██╗██╗   ██╗ █████╗ ████████╗███████╗
+#    ██╔╝██╔══██╗██╔════╝╚══██╔══╝██║██║   ██║██╔══██╗╚══██╔══╝██╔════╝
+#   ██╔╝ ███████║██║        ██║   ██║██║   ██║███████║   ██║   █████╗  
+#  ██╔╝  ██╔══██║██║        ██║   ██║╚██╗ ██╔╝██╔══██║   ██║   ██╔══╝  
+# ██╔╝   ██║  ██║╚██████╗   ██║   ██║ ╚████╔╝ ██║  ██║   ██║   ███████╗
+# ╚═╝    ╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚═╝  ╚═══╝  ╚═╝  ╚═╝   ╚═╝   ╚══════╝
 
 
 # класс активного предмета сундук.
@@ -568,6 +535,14 @@ class Bad_Chest(pygame.sprite.Sprite):
         self.kill()
         object = (["Tnt", "Endermite", "Skeleton"])[random.randint(0, 2)]
         FIELD[row][col] = eval(f'{object}(col, row)')
+
+
+#     ██╗███╗   ███╗ ██████╗ ██╗   ██╗ █████╗ ██████╗ ██╗     ███████╗
+#    ██╔╝████╗ ████║██╔═══██╗██║   ██║██╔══██╗██╔══██╗██║     ██╔════╝
+#   ██╔╝ ██╔████╔██║██║   ██║██║   ██║███████║██████╔╝██║     █████╗  
+#  ██╔╝  ██║╚██╔╝██║██║   ██║╚██╗ ██╔╝██╔══██║██╔══██╗██║     ██╔══╝  
+# ██╔╝   ██║ ╚═╝ ██║╚██████╔╝ ╚████╔╝ ██║  ██║██████╔╝███████╗███████╗
+# ╚═╝    ╚═╝     ╚═╝ ╚═════╝   ╚═══╝  ╚═╝  ╚═╝╚═════╝ ╚══════╝╚══════╝
 
 
 # класс смещаемого предмета динамит.
@@ -668,7 +643,74 @@ class Tnt(pygame.sprite.Sprite):
         self.rect.y = coords[row][col][1]
 
 
-# класс пикапа-меча (железный).
+#     ██╗██████╗ ██╗ ██████╗██╗  ██╗██╗   ██╗██████╗ 
+#    ██╔╝██╔══██╗██║██╔════╝██║ ██╔╝██║   ██║██╔══██╗
+#   ██╔╝ ██████╔╝██║██║     █████╔╝ ██║   ██║██████╔╝
+#  ██╔╝  ██╔═══╝ ██║██║     ██╔═██╗ ██║   ██║██╔═══╝ 
+# ██╔╝   ██║     ██║╚██████╗██║  ██╗╚██████╔╝██║     
+# ╚═╝    ╚═╝     ╚═╝ ╚═════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  
+
+
+# класс пикапа-леченья (зелье).
+class Potion_Heal(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(pickup_group)
+        self.type = "pickup"
+
+        heal_image = pygame.image.load(f"data/pickup/heal_potion.png")
+        heal_image = pygame.transform.scale(heal_image, (150, 150))
+        self.image = heal_image
+        self.rect = self.image.get_rect()
+        self.rect.x = coords[y][x][0]
+        self.rect.y = coords[y][x][1]
+
+    
+    def pick_up(self):
+        if hero.health + 3 > 10:
+            hero.health = 10
+        else:
+            hero.health += 3
+        self.kill()
+
+# класс пикапа-монетки.
+class Coin(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(pickup_group)
+        self.type = "pickup"
+
+        coin_image = pygame.image.load(f"data/pickup/gold.png")
+        coin_image = pygame.transform.scale(coin_image, (150, 150))
+        self.image = coin_image
+        self.rect = self.image.get_rect()
+        self.rect.x = coords[y][x][0]
+        self.rect.y = coords[y][x][1]
+
+    
+    def pick_up(self):
+        hero.coins += 1
+        self.kill()
+
+
+# класс пикапа-алмаза.
+class Diamond(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(pickup_group)
+        self.type = "pickup"
+
+        diamond_image = pygame.image.load(f"data/pickup/diamond.png")
+        diamond_image = pygame.transform.scale(diamond_image, (150, 150))
+        self.image = diamond_image
+        self.rect = self.image.get_rect()
+        self.rect.x = coords[y][x][0]
+        self.rect.y = coords[y][x][1]
+
+    
+    def pick_up(self):
+        hero.coins += 3
+        self.kill()
+
+
+# класс пикапа меча (железный).
 class Sword_Iron(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(pickup_group)
@@ -690,7 +732,7 @@ class Sword_Iron(pygame.sprite.Sprite):
         self.kill()
 
 
-# класс пикапа-меча (алмазный).
+# класс пикапа меча (алмазный).
 class Sword_Diamond(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(pickup_group)
@@ -712,6 +754,14 @@ class Sword_Diamond(pygame.sprite.Sprite):
         self.kill()
 
 
+#     ██╗███████╗███╗   ██╗███████╗███╗   ███╗██╗   ██╗
+#    ██╔╝██╔════╝████╗  ██║██╔════╝████╗ ████║╚██╗ ██╔╝
+#   ██╔╝ █████╗  ██╔██╗ ██║█████╗  ██╔████╔██║ ╚████╔╝ 
+#  ██╔╝  ██╔══╝  ██║╚██╗██║██╔══╝  ██║╚██╔╝██║  ╚██╔╝  
+# ██╔╝   ███████╗██║ ╚████║███████╗██║ ╚═╝ ██║   ██║   
+# ╚═╝    ╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝     ╚═╝   ╚═╝                                                 
+                                                               
+
 # класс врага эндермит.
 class Endermite(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -725,7 +775,6 @@ class Endermite(pygame.sprite.Sprite):
         self.rect.x = coords[y][x][0]
         self.rect.y = coords[y][x][1]
 
-        # статы эндермит.
         self.health = 2
     
     def deal_damage(self, damage_dealt, weapon):
@@ -775,7 +824,7 @@ class Endermite(pygame.sprite.Sprite):
         pass
 
 
-# класс врага эндермит.
+# класс врага скелет.
 class Skeleton(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(enemy_group)
@@ -788,7 +837,6 @@ class Skeleton(pygame.sprite.Sprite):
         self.rect.x = coords[y][x][0]
         self.rect.y = coords[y][x][1]
 
-        # статы эндермит.
         self.health = 4
     
     def deal_damage(self, damage_dealt, weapon):
@@ -825,7 +873,7 @@ class Skeleton(pygame.sprite.Sprite):
         self.image = skeleton_image
 
 
-# класс врага-эндермена(?).
+# класс врага эндермена.
 class Enderman(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(enemy_group)
@@ -838,7 +886,6 @@ class Enderman(pygame.sprite.Sprite):
         self.rect.x = coords[y][x][0]
         self.rect.y = coords[y][x][1]
 
-        # статы эндермана.
         self.health = 4
     
     def deal_damage(self, damage_dealt, weapon):
@@ -890,7 +937,7 @@ class Enderman(pygame.sprite.Sprite):
             self.rect.y = coords[row_to_set][col_to_set][1]
 
 
-# класс врага-крипера(?).
+# класс врага крипера.
 class Creeper(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(enemy_group)
@@ -903,7 +950,6 @@ class Creeper(pygame.sprite.Sprite):
         self.rect.x = coords[y][x][0]
         self.rect.y = coords[y][x][1]
 
-        # статы крипера.
         self.health = 4
     
     def deal_damage(self, damage_dealt, weapon):
@@ -943,7 +989,7 @@ class Creeper(pygame.sprite.Sprite):
         pass
 
 
-# класс врага-зомби.
+# класс врага зомби.
 class Zombie(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(enemy_group)
@@ -956,7 +1002,6 @@ class Zombie(pygame.sprite.Sprite):
         self.rect.x = coords[y][x][0]
         self.rect.y = coords[y][x][1]
 
-        # статы зомби.
         self.health = 6
     
     def deal_damage(self, damage_dealt, weapon):
@@ -996,6 +1041,57 @@ class Zombie(pygame.sprite.Sprite):
         pass
 
 
+# класс голема.
+class Golem(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(enemy_group)
+        self.type = "enemy"
+
+        golem_image = pygame.image.load(f"data/enemy/golem/8.png")
+        golem_image = pygame.transform.scale(golem_image, (150, 150))
+        self.image = golem_image
+        self.rect = self.image.get_rect()
+        self.rect.x = coords[y][x][0]
+        self.rect.y = coords[y][x][1]
+
+        self.health = 8
+    
+    def deal_damage(self, damage_dealt, weapon):
+        if weapon == True:
+            if self.health - damage_dealt <= 0:
+                index = [item for sublist in FIELD for item in sublist].index(self)
+                row, col = index // 3, index % 3
+                self.die(row, col)
+                hero.weapon = hero.weapon - self.health
+            else:
+                self.health -= damage_dealt
+                self.show_health()
+                hero.weapon = 0
+        else:
+            if self.health - damage_dealt <= 0:
+                index = [item for sublist in FIELD for item in sublist].index(self)
+                row, col = index // 3, index % 3
+                hero.health -= self.health
+                self.die(row, col)
+                
+            else:
+                self.health -= damage_dealt
+                self.show_health()
+                
+    
+    def die(self, row, col):
+        self.kill()
+        FIELD[row][col] = Diamond(col, row)
+        hero.enemies_killed += 1
+    
+    def show_health(self):
+        golem_image = pygame.image.load(f"data/enemy/golem/{self.health}.png")
+        golem_image = pygame.transform.scale(golem_image, (150, 150))
+        self.image = golem_image
+    
+    def special_ability(self):
+        pass
+
 # класс врага зомби в шлеме.
 class Helmet_Zombie(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -1009,7 +1105,6 @@ class Helmet_Zombie(pygame.sprite.Sprite):
         self.rect.x = coords[y][x][0]
         self.rect.y = coords[y][x][1]
 
-        # статы зомби.
         self.health = 7
     
     def deal_damage(self, damage_dealt, weapon):
@@ -1059,7 +1154,7 @@ class Helmet_Zombie(pygame.sprite.Sprite):
 
 # инициализация и наименование.
 pygame.init()
-pygame.display.set_caption('Игра?')
+pygame.display.set_caption('Minicruft Dumgeons')
 
 # создание окна по размеру.
 size = width, height = 490, 800
@@ -1111,7 +1206,9 @@ movable_group = pygame.sprite.Group()
 clock = pygame.time.Clock()
 fps = 15
 
+# первый устанавливаемый объект
 object = random.choice(objects)
+
 # запуск программы.
 running = True
 while running:
@@ -1133,7 +1230,7 @@ while running:
     steps_indicator.show_up(hero.steps)
     kills_indicator.show_up(hero.enemies_killed)
 
-
+    # отображение стартового меню.
     if menu.on == True:
         menu_group.draw(screen)
         for event in pygame.event.get():
@@ -1150,6 +1247,7 @@ while running:
                         hero.change("steve")
                         menu.on = False
     
+    # отображение меню при смерти.
     elif death_menu.on == True:
         indicator1.show_up(statistic[0]) 
         indicator2.show_up(statistic[1])
@@ -1177,6 +1275,7 @@ while running:
                         
 
     else:
+        # основной процесс игры.
         for row in range(len(FIELD)):
             for col in range(len(FIELD[row])):
                 if FIELD[row][col] == None:
